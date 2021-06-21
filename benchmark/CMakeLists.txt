@@ -1,0 +1,44 @@
+enable_language(ASM)
+macro(add_bench group_name)
+    # name or [name gen_name gen_var] 
+    if(${ARGC} GREATER 2)
+        set(func_name ${ARGV1})
+        set(variable ${ARGV2})
+    else()
+        set(func_name ${group_name})
+        set(variable "")
+    endif()
+
+    set(asm_src kernels/halide_${func_name}.s)
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/kernels/halide_${func_name}_auto.s)
+        list(APPEND asm_src kernels/halide_${func_name}_auto.s)
+    endif()
+    
+    add_executable(bench_${func_name} bench_${func_name}.cpp ${asm_src})
+    halide_generate_code(${group_name} ${func_name} "${variable}")
+    add_dependencies(bench_${func_name} gen_${func_name})
+    target_link_libraries(bench_${func_name} nncase CONAN_PKG::celero -ldl -lpthread)
+endmacro()
+
+# add conan dep
+include(../cmake/conan.cmake)
+conan_check()
+conan_add_remote(NAME bincrafts URL https://api.bintray.com/conan/bincrafters/public-conan)
+conan_add_remote(NAME sunnycase URL https://conan.sunnycase.moe INDEX 0)
+conan_cmake_run(CONANFILE ../conanfile.txt
+                    BASIC_SETUP CMAKE_TARGETS
+                    SETTINGS compiler.cppstd=20
+                    BUILD missing)
+    include(${CMAKE_BINARY_DIR}/benchmark/conan_paths.cmake)
+
+find_package(nncase REQUIRED)
+
+file(GLOB ASMSRC ${CMAKE_SOURCE_DIR}/include/generated_kernels/*.s)
+file(GLOB BENCHS *.cpp)
+foreach(BENCH ${BENCHS})
+    get_filename_component(BIN ${BENCH} NAME_WE)
+    message("${BIN} ${BENCH} ${ASMSRC}")
+    add_executable(${BIN} ${BENCH} ${ASMSRC})
+    add_dependencies(${BIN} generated_kernels)
+    target_link_libraries(${BIN} nncase CONAN_PKG::celero -ldl -lpthread)
+endforeach()

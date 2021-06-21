@@ -1,0 +1,15 @@
+[generators]
+cmake
+cmake_find_package
+cmake_paths
+
+[requires]
+gtest/1.10.0
+celero/2.6.0
+gsl-lite/0.37.0
+mpark-variant/1.4.0
+xtensor/0.21.5
+
+[options]
+
+[imports]
