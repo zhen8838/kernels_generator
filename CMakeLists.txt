@@ -1,6 +1,9 @@
 cmake_minimum_required (VERSION 3.14)
 set(CMAKE_CXX_STANDARD 17)
-project(kernels_generator)
+
+PROJECT(kernels_generator)
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
 
 # 各种宏 
 set(KERNEL_SRCS "")
@@ -8,19 +11,20 @@ macro(halide_generate_code group_name func_name variable)
     add_custom_command(
         OUTPUT ${CMAKE_SOURCE_DIR}/include/generated_kernels/halide_${func_name}.s
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/include/generated_kernels
-        COMMAND ${CMAKE_BINARY_DIR}/kernels_generator -g halide_${group_name} -n halide_${func_name} -f halide_${func_name} -o ${CMAKE_SOURCE_DIR}/include/generated_kernels -e c_header,assembly,schedule,stmt target=host-no_asserts-no_bounds_query ${variable}
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -n halide_${func_name} -f halide_${func_name} -o ${CMAKE_SOURCE_DIR}/include/generated_kernels -e c_header,assembly,schedule,stmt target=host-no_asserts-no_bounds_query ${variable}
         DEPENDS kernels_generator
     )
     list(APPEND KERNEL_SRCS ${CMAKE_SOURCE_DIR}/include/generated_kernels/halide_${func_name}.s) 
 endmacro()
 
+find_package(Halide REQUIRED)
 
 include_directories(include)
-
 add_compile_options(-fno-rtti)
 
 # add gen all
-add_executable(kernels_generator /usr/local/share/tools/GenGen.cpp kernels_generator.cpp)
+include_directories(${Halide_INCLUDE_DIR})
+add_executable(kernels_generator ${Halide_RES_DIRS}/GenGen.cpp kernels_generator.cpp)
 target_link_libraries(kernels_generator Halide)
 
 # generate codes
@@ -45,3 +49,10 @@ if(ENABLE_BENCHMARK)
     endif()
 endif()
 
+install(DIRECTORY include/generated_kernels
+        DESTINATION include
+        FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.s"
+        PATTERN "*.stmt"
+)

@@ -17,21 +17,13 @@ macro(add_bench group_name)
     add_executable(bench_${func_name} bench_${func_name}.cpp ${asm_src})
     halide_generate_code(${group_name} ${func_name} "${variable}")
     add_dependencies(bench_${func_name} gen_${func_name})
-    target_link_libraries(bench_${func_name} nncase CONAN_PKG::celero -ldl -lpthread)
+    target_link_libraries(bench_${func_name} nncase celero -ldl -lpthread)
 endmacro()
 
 # add conan dep
-include(../cmake/conan.cmake)
-conan_check()
-conan_add_remote(NAME bincrafts URL https://api.bintray.com/conan/bincrafters/public-conan)
-conan_add_remote(NAME sunnycase URL https://conan.sunnycase.moe INDEX 0)
-conan_cmake_run(CONANFILE ../conanfile.txt
-                    BASIC_SETUP CMAKE_TARGETS
-                    SETTINGS compiler.cppstd=20
-                    BUILD missing)
-    include(${CMAKE_BINARY_DIR}/benchmark/conan_paths.cmake)
-
 find_package(nncase REQUIRED)
+find_package(gtest REQUIRED)
+find_package(celero REQUIRED)
 
 file(GLOB ASMSRC ${CMAKE_SOURCE_DIR}/include/generated_kernels/*.s)
 file(GLOB BENCHS *.cpp)
@@ -40,5 +32,5 @@ foreach(BENCH ${BENCHS})
     message("${BIN} ${BENCH} ${ASMSRC}")
     add_executable(${BIN} ${BENCH} ${ASMSRC})
     add_dependencies(${BIN} generated_kernels)
-    target_link_libraries(${BIN} nncase CONAN_PKG::celero -ldl -lpthread)
+    target_link_libraries(${BIN} nncase celero -ldl -lpthread)
 endforeach()
