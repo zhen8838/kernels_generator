@@ -1,5 +1,5 @@
 #include "benchmark/bench_gnne_matmul.h"
-#include "generated_kernels/halide_gnne_matmul.h"
+#include "hkg/halide_gnne_matmul.h"
 // #include "kernels/halide_gnne_matmul_auto.h"
 
 BENCHMARK_F(Gnne_Matmul, ref, GnneMatmulTestFixture, 5, 10)

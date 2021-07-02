@@ -7,7 +7,7 @@
 #include <tuple>
 #include <vector>
 
-std::vector<std::vector<size_t>> Conv2D_Test_Params = {
+std::vector<std::vector<size_t>> GNNE_Conv2D_Test_Params = {
     {1, 3, 32, 32, 4},    // B, IC, H, W, OC, ...
     {1, 3, 224, 224, 32}, // B, IC, H, W, OC, ...
     {1, 32, 112, 112, 16},
@@ -46,7 +46,7 @@ public:
 
   std::vector<celero::TestFixture::ExperimentValue> getExperimentValues() const override
   {
-    std::vector<celero::TestFixture::ExperimentValue> bufferSizes(Conv2D_Test_Params.size());
+    std::vector<celero::TestFixture::ExperimentValue> bufferSizes(GNNE_Conv2D_Test_Params.size());
     std::iota(bufferSizes.begin(), bufferSizes.end(), (size_t)0);
     return bufferSizes;
   }
@@ -96,7 +96,7 @@ public:
 
   void setUp(const celero::TestFixture::ExperimentValue &experimentValue) override
   {
-    auto param = Conv2D_Test_Params[experimentValue.Value];
+    auto param = GNNE_Conv2D_Test_Params[experimentValue.Value];
     auto B = param[0], IC = param[1], H = param[2], W = param[3], OC = param[4];
     groups = 1;
     filter_h = KernelHeight;
@@ -115,9 +115,9 @@ public:
   }
 };
 
-#define BENCHMARK_CONV2D_CASE(kh, kw, sh, sw, padsame) BENCHMARK_CONV2D_CASE_IMPL(kh, kw, sh, sw, padsame, false, 5, 1)
+#define BENCHMARK_GNNE_CONV2D_CASE(kh, kw, sh, sw, padsame) BENCHMARK_GNNE_CONV2D_CASE_IMPL(kh, kw, sh, sw, padsame, false, 5, 1)
 
-#define BENCHMARK_CONV2D_CASE_IMPL(kh, kw, sh, sw, padsame, nopsum, sample, iteration)                                                   \
+#define BENCHMARK_GNNE_CONV2D_CASE_IMPL(kh, kw, sh, sw, padsame, nopsum, sample, iteration)                                                   \
                                                                                                                                          \
   using GnneConv2DTestFixture_##kh##x##kw##_##sh##x##sw##_##padsame##_##nopsum = GnneConv2DTestFixture<kh, kw, sh, sw, padsame, nopsum>; \
                                                                                                                                          \

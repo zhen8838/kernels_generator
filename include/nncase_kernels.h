@@ -25,6 +25,73 @@ inline float apply_gnne_activation(float value, float x0, float kl, float bl, fl
     return value < x0 ? value * kl + bl : value * kr + br;
 }
 
+inline void conv2d(float *input, float *weights, float *bias, float *output,
+    runtime_shape_t &in_shape, runtime_shape_t &in_strides, runtime_shape_t &w_shape, runtime_shape_t &w_strides,
+    runtime_shape_t &bias_strides, runtime_shape_t &out_strides, padding &padding_h, padding &padding_w,
+    int32_t groups, int32_t stride_h, int32_t stride_w, int32_t dilation_h, int32_t dilation_w, value_range<float> fused_activation) noexcept
+{
+    const auto filter_h = (int32_t)w_shape[2];
+    const auto filter_w = (int32_t)w_shape[3];
+    const auto out_channels = w_shape[0];
+    const auto out_h = nncase::kernels::detail::get_windowed_output_size(in_shape[2], filter_h, stride_h, dilation_h, padding_h);
+    const auto out_w = nncase::kernels::detail::get_windowed_output_size(in_shape[3], filter_w, stride_w, dilation_w, padding_w);
+    const auto g_ic = in_shape[1] / groups;
+    const auto g_oc = out_channels / groups;
+
+    runtime_shape_t in_index(4);
+    runtime_shape_t w_index(4);
+    runtime_shape_t bias_index(1);
+    runtime_shape_t out_index(4);
+    for (size_t batch = 0; batch < in_shape[0]; batch++)
+    {
+        in_index[0] = out_index[0] = batch;
+        for (size_t og = 0; og < (size_t)groups; og++)
+        {
+            for (size_t oc = 0; oc < g_oc; oc++)
+            {
+                out_index[1] = w_index[0] = bias_index[0] = og * g_oc + oc;
+                for (size_t oy = 0; oy < out_h; oy++)
+                {
+                    out_index[2] = oy;
+                    for (size_t ox = 0; ox < out_w; ox++)
+                    {
+                        out_index[3] = ox;
+                        const int32_t in_y_origin = (oy * stride_h) - padding_h.before;
+                        const int32_t in_x_origin = (ox * stride_w) - padding_w.before;
+                        const size_t filter_y_start = (size_t)std::max(0, (-in_y_origin + dilation_h - 1) / dilation_h);
+                        const size_t filter_y_end = (size_t)std::min(filter_h, ((int32_t)in_shape[2] - in_y_origin + dilation_h - 1) / dilation_h);
+                        const size_t filter_x_start = (size_t)std::max(0, (-in_x_origin + dilation_w - 1) / dilation_w);
+                        const size_t filter_x_end = (size_t)std::min(filter_w, ((int32_t)in_shape[3] - in_x_origin + dilation_w - 1) / dilation_w);
+                        float value = bias[nncase::kernels::offset(bias_strides, bias_index)];
+
+                        for (size_t ic = 0; ic < g_ic; ic++)
+                        {
+                            in_index[1] = og * g_ic + ic;
+                            w_index[1] = ic;
+                            for (size_t ky = filter_y_start; ky < filter_y_end; ky++)
+                            {
+                                w_index[2] = ky;
+                                for (size_t kx = filter_x_start; kx < filter_x_end; kx++)
+                                {
+                                    w_index[3] = kx;
+                                    in_index[2] = in_y_origin + dilation_h * ky;
+                                    in_index[3] = in_x_origin + dilation_w * kx;
+
+                                    const float in_v = input[nncase::kernels::offset(in_strides, in_index)];
+                                    const float w = weights[nncase::kernels::offset(w_strides, w_index)];
+
+                                    value += in_v * w;
+                                }
+                            }
+                        }
+                        output[nncase::kernels::offset(out_strides, out_index)] = nncase::kernels::detail::apply_activation(value, fused_activation);
+                    }
+                }
+            }
+        }
+    }
+}
+
 inline void gnne_conv2d(bfloat16 *input, bfloat16 *output, bfloat16 *weights, float *psum, bfloat16 *act, runtime_shape_t &in_shape,
     int32_t groups, int32_t out_channels, int32_t filter_h, int32_t filter_w, int32_t stride_h, int32_t stride_w, int32_t dilation_h, int32_t dilation_w,
     padding &padding_h, padding &padding_w, value_range<bfloat16> fused_clamp, bool psum_is_uninitialized)

@@ -7,34 +7,33 @@ class HkgConan(ConanFile):
   license = "MIT"
   author = "zhengqihang 18000632@smail.cczu.edu.cn"
   url = "<Package recipe repository url here, for issues about the package>"
-  description = "<Description of Hkg here>"
-  topics = ("<Put some tag here>", "<here>", "<and here>")
+  description = "Halide kernel generator"
+  topics = ("DNN", "compiler")
   settings = "os", "compiler", "build_type", "arch"
   options = {"shared": [True, False],
-             "fPIC": [True, False],
-             "benchmark": [True, False],
-             "test": [True, False],
-             }
+             "fPIC": [True, False]}
+
   default_options = {"shared": False,
-                     "fPIC": True,
-                     "benchmark": False,
-                     "test": False,
-                     }
+                     "fPIC": True}
+                     
   generators = ["cmake", "cmake_find_package", "cmake_paths"]
 
-  exports_sources = ['benchmark/*', 'include/*', 'tests/*',
+  exports_sources = ['benchmark/*',
+                     'include/*',
+                     'tests/*',
                      'CMakeLists.txt',
                      'kernels_generator.cpp',
                      'README.md']
 
   def requirements(self):
-    self.requires("gtest/1.10.0")
-    self.requires("celero/2.6.0")
     self.requires("Halide/12.0.0")
 
   def config_options(self):
     if self.settings.os == "Windows":
       del self.options.fPIC
+
+  def configure(self):
+    pass
 
   def source(self):
     pass
