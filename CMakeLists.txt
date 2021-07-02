@@ -9,11 +9,12 @@ if(CONAN_EXPORTED) # in conan local cache
     conan_basic_setup()
 else() # in user space
     message(STATUS "Auto Cmake Conan Installation")
-    include(${CMAKE_SOURCE_DIR}/cmake/conan.cmake)
+    include(cmake/conan.cmake)
     conan_cmake_run(CONANFILE conanfile.py
                     BASIC_SETUP
                     BUILD missing)
 endif()
+include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 
 find_package(Halide REQUIRED)
 
@@ -42,8 +43,9 @@ include_directories(include)
 add_compile_options(-fno-rtti -Wall)
 
 # add gen all
-add_executable(kernels_generator kernels_generator.cpp)
-target_link_libraries(kernels_generator Halide::Generator)
+include_directories(${Halide_INCLUDES})
+add_executable(kernels_generator kernels_generator.cpp ${CONAN_HALIDE_ROOT}/share/tools/GenGen.cpp)
+target_link_libraries(kernels_generator Halide)
 
 # generate codes
 halide_generate_code(gnne_matmul gnne_matmul "")

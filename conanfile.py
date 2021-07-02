@@ -1,4 +1,6 @@
 from conans import ConanFile, CMake, tools
+import os
+import shutil
 
 
 class HkgConan(ConanFile):
@@ -11,16 +13,19 @@ class HkgConan(ConanFile):
   topics = ("DNN", "compiler")
   settings = "os", "compiler", "build_type", "arch"
   options = {"shared": [True, False],
-             "fPIC": [True, False]}
+             "fPIC": [True, False],
+             "tests": [True, False],
+             "benchmark": [True, False]}
 
   default_options = {"shared": False,
-                     "fPIC": True}
-                     
+                     "fPIC": True,
+                     "tests": False,
+                     "benchmark": False}
+
   generators = ["cmake", "cmake_find_package", "cmake_paths"]
 
-  exports_sources = ['benchmark/*',
+  exports_sources = ['src/*',
                      'include/*',
-                     'tests/*',
                      'CMakeLists.txt',
                      'kernels_generator.cpp',
                      'README.md']
@@ -36,10 +41,14 @@ class HkgConan(ConanFile):
     pass
 
   def source(self):
-    pass
+    if os.path.exists('include/hkg'):
+      print("The generated kernel has been copyed to source, remove it!")
+      shutil.rmtree('include/hkg')
 
   def cmake_configure(self):
     cmake = CMake(self)
+    cmake.definitions['ENABLE_BENCHMARK'] = self.options.benchmark
+    cmake.definitions['ENABLE_TEST'] = self.options.tests
     cmake.configure()
     return cmake
 
