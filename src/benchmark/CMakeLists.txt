@@ -17,7 +17,7 @@ macro(add_bench group_name)
     add_executable(bench_${func_name} bench_${func_name}.cpp ${asm_src})
     halide_generate_code(${group_name} ${func_name} "${variable}")
     add_dependencies(bench_${func_name} gen_${func_name})
-    target_link_libraries(bench_${func_name} nncase celero -ldl -lpthread)
+    target_link_libraries(bench_${func_name} celero -ldl -lpthread)
 endmacro()
 
 

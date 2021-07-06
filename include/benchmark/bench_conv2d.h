@@ -3,8 +3,6 @@
 #include "../utils.h"
 #include <celero/Celero.h>
 #include <cmath>
-#include <nncase/kernels/kernel_utils.h>
-#include <nncase/runtime/runtime_op_utility.h>
 #include <tuple>
 #include <vector>
 std::vector<std::vector<size_t>> Conv2D_Test_Params = {
@@ -113,7 +111,6 @@ auto get_data(size_t batch, size_t in_channels, size_t height, size_t width, siz
 // };
 
 // #define BENCHMARK_CONV2D_CASE(kh, kw, sh, sw, padsame) BENCHMARK_CONV2D_CASE_IMPL(kh, kw, sh, sw, padsame, 5, 1)
-
 /* #define BENCHMARK_CONV2D_CASE_IMPL(kh, kw, sh, sw, padsame, sample, iteration)                                          \
                                                                                                                         \
     using Conv2DTestFixture_##kh##x##kw##_##sh##x##sw##_##padsame = Conv2DTestFixture<kh, kw, sh, sw, padsame, nopsum>; \
@@ -133,4 +130,5 @@ auto get_data(size_t batch, size_t in_channels, size_t height, size_t width, siz
     {                                                                                                                   \
         conv2d_##kh##x##kw(input.hbuf, weights.hbuf, bias.hbuf, v_range.hbuf,                                           \
             padding_h.before, padding_h.after, padding_w.before, padding_w.after, stride_h, stride_w, output.hbuf);     \
-    } */
+    }
+ */

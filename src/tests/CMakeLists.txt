@@ -1,11 +1,5 @@
 enable_language(ASM)
 
-# add test all
-# file(GLOB KERNEL_SRC ${CMAKE_SOURCE_DIR}/include/hkg/halide_gnne_*.s)
-# add_executable(test_gen test_gen.cpp ${KERNEL_SRC})
-# add_dependencies(test_gen generated_kernels)
-# target_link_libraries(test_gen nncase GTest::gtest_main celero::celero -ldl -lpthread)
-
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
    set(os_name "linux")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -22,7 +16,13 @@ endif()
 
 set(runtime_lib_name "${CMAKE_SOURCE_DIR}/include/${GENERATED_DIR}/halide_runtime_${os_name}.${suffix}")
 
-file(GLOB KERNEL_SRC ${CMAKE_SOURCE_DIR}/include/generated_kernels/halide_conv2d*${os_name}*.s)
-add_executable(test_gen_conv2d test_gen_conv2d.cpp ${KERNEL_SRC})
-add_dependencies(test_gen_conv2d generated_kernels)
-target_link_libraries(test_gen_conv2d nncase GTest::gtest_main celero::celero ${runtime_lib_name} -ldl -lpthread)
+
+macro(add_one_test name)
+    file(GLOB KERNEL_SRC ${CMAKE_SOURCE_DIR}/include/generated_kernels/halide_${name}*${os_name}*.s)
+    add_executable(test_gen_${name} test_gen_${name}.cpp ${KERNEL_SRC})
+    add_dependencies(test_gen_${name} generated_kernels)
+    target_link_libraries(test_gen_conv2d GTest::gtest_main celero::celero ${runtime_lib_name} -ldl -lpthread)
+    add_test(NAME test_gen_${name} COMMAND test_gen_${name})
+endmacro()
+
+add_one_test(conv2d)

@@ -1,7 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
-
+#include <iostream>
 namespace internal
 {
 
@@ -13,6 +13,13 @@ struct Target
     bool feature_fma = false; ///< Enable x86 FMA instruction
     bool feature_f16c = false; ///< Enable x86 16-bit float support
 };
+
+std::ostream &operator<<(std::ostream &os, const Target &t)
+{
+    os << "Target : have_sse41: " << t.feature_sse41 << " , have_avx : " << t.feature_avx << " , have_avx2 : " << t.feature_avx2 << " , have_fma : " << t.feature_fma << " , have_f16c : " << t.feature_f16c << ";" << std::endl;
+    return os;
+}
+
 Target get_host_target();
 static Target host_target = get_host_target();
 
@@ -58,7 +65,7 @@ Target get_host_target()
     static_assert(sizeof(size_t) == 8); // must be 64 bit
 
     bool have_sse41 = (info[2] & (1 << 19)) != 0;
-    [[​maybe_unused]] bool have_sse2 = (info[3] & (1 << 26)) != 0;
+    //  bool have_sse2 = (info[3] & (1 << 26)) != 0;
     bool have_avx = (info[2] & (1 << 28)) != 0;
     bool have_f16c = (info[2] & (1 << 29)) != 0;
     bool have_rdrand = (info[2] & (1 << 30)) != 0;
@@ -82,9 +89,9 @@ Target get_host_target()
         const uint32_t avx512vl = 1U << 31;
         const uint32_t avx512ifma = 1U << 21;
         const uint32_t avx512 = avx512f | avx512cd;
-        [[​maybe_unused]] const uint32_t avx512_knl = avx512 | avx512pf | avx512er;
+        //  const uint32_t avx512_knl = avx512 | avx512pf | avx512er;
         const uint32_t avx512_skylake = avx512 | avx512vl | avx512bw | avx512dq;
-        [[​maybe_unused]] const uint32_t avx512_cannonlake = avx512_skylake | avx512ifma; // Assume ifma => vbmi
+        //  const uint32_t avx512_cannonlake = avx512_skylake | avx512ifma; // Assume ifma => vbmi
         if ((info2[1] & avx2) == avx2)
         {
             have_avx2 = true;

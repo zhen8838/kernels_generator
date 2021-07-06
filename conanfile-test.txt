@@ -1,0 +1,12 @@
+[generators]
+cmake
+cmake_find_package
+cmake_paths
+
+[requires]
+gtest/1.10.0
+celero/2.6.0
+
+[options]
+
+[imports]

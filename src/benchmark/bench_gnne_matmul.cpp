@@ -12,9 +12,9 @@ BASELINE_F(Gnne_Matmul, opt, GnneMatmulTestFixture, 5, 10)
   halide_gnne_matmul(input_a.hbuf, input_b.hbuf, act.hbuf, v_range.hbuf, output.hbuf);
 }
 
-// BASELINE_F(Gnne_Matmul, auto, GnneMatmulTestFixture, 5, 10)
-// {
-//     halide_gnne_matmul_auto(input_a.hbuf, input_b.hbuf, act.hbuf, v_range.hbuf, output.hbuf);
-// }
+BASELINE_F(Gnne_Matmul, auto, GnneMatmulTestFixture, 5, 10)
+{
+    halide_gnne_matmul_auto(input_a.hbuf, input_b.hbuf, act.hbuf, v_range.hbuf, output.hbuf);
+}
 
 CELERO_MAIN

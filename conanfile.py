@@ -11,31 +11,27 @@ class HkgConan(ConanFile):
   url = "<Package recipe repository url here, for issues about the package>"
   description = "Halide kernel generator"
   topics = ("DNN", "compiler")
-  settings = "os", "compiler", "build_type", "arch"
-  options = {"shared": [True, False],
-             "fPIC": [True, False],
-             "tests": [True, False],
+  settings = "arch"
+  options = {"tests": [True, False],
              "benchmark": [True, False]}
 
-  default_options = {"shared": False,
-                     "fPIC": True,
-                     "tests": False,
+  default_options = {"tests": False,
                      "benchmark": False}
 
   generators = ["cmake", "cmake_find_package", "cmake_paths"]
 
   exports_sources = ['src/*',
                      'include/*',
+                     'cmake/*',
                      'CMakeLists.txt',
-                     'kernels_generator.cpp',
-                     'README.md']
+                     'kernels_generator.cpp']
 
-  def requirements(self):
+  def build_requirements(self):
     self.requires("Halide/12.0.0")
 
   def config_options(self):
-    if self.settings.os == "Windows":
-      del self.options.fPIC
+    if self.settings.arch != "x86_64":
+      raise ValueError("not support other patfrom!")
 
   def configure(self):
     pass

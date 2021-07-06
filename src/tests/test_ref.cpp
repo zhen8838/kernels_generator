@@ -1,10 +1,10 @@
 #include "include/bench_gnne_matmul.h"
 #include "include/ref_halide_impl.h"
 #include "include/ref_nncase_impl.h"
+#include "nncase.h"
 #include "test_utils.h"
 #include <bench_gnne_matmul.h>
 #include <gtest/gtest.h>
-#include <nncase/runtime/datatypes.h>
 
 // #define DEBUG
 typedef nncase::bfloat16 NNCASE_TYPE_t;

@@ -1,10 +1,10 @@
 #pragma once
 
+#include "nncase.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
-#include <nncase/kernels/kernel_utils.h>
-#include <nncase/runtime/datatypes.h>
 #include <type_traits>
 
 namespace Nncaseimpl

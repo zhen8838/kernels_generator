@@ -1,13 +1,12 @@
 #pragma once
 
+#include "nncase.h"
 #include "prng.h"
 #include <HalideBuffer.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <nncase/runtime/datatypes.h>
-#include <nncase/runtime/runtime_op_utility.h>
 #include <string>
 #include <type_traits>
 
@@ -27,17 +26,6 @@ enum class init_method
     sequence,
     zero,
 };
-
-template <typename Container>
-size_t compute_size(Container shape)
-{
-    size_t size = 1;
-    for (auto &&s : shape)
-    {
-        size *= s;
-    }
-    return size;
-}
 
 template <typename T>
 static T random_value(float a = -1.2f, float b = 1.2f)
@@ -71,7 +59,7 @@ template <typename Iterator, typename dest_t>
 void init_blob(Iterator src, dest_t *&dest, nncase::runtime_shape_t shape)
 {
     assert(src != nullptr);
-    auto size = compute_size(shape);
+    auto size =nncase::runtime::compute_size(shape);
     if (dest == nullptr)
     {
         dest = new dest_t[size];
@@ -93,7 +81,7 @@ void init_blob(Iterator src, dest_t *&dest, nncase::runtime_shape_t shape)
 template <typename T>
 void init_blob(T *&m, init_method method, nncase::runtime_shape_t shape, T base)
 {
-    size_t size = compute_size(shape);
+    size_t size =nncase::runtime::compute_size(shape);
     if (m == nullptr)
     {
         m = new T[size];
