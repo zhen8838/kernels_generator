@@ -1,8 +1,8 @@
 #include "benchmark/bench_conv2d.h"
-#include "hkg/halide_conv2d_1x1.h"
-#include "hkg/halide_conv2d_3x3.h"
-#include "hkg/halide_conv2d_5x5.h"
-#include "hkg/halide_conv2d_7x7.h"
+#include "hkg/halide_conv2d.h"
+// #include "hkg/halide_conv2d_3x3.h"
+// #include "hkg/halide_conv2d_5x5.h"
+// #include "hkg/halide_conv2d_7x7.h"
 #include <gtest/gtest.h>
 
 auto Shape_Params = testing::Values(
@@ -94,8 +94,8 @@ public:
     }
 
 TEST_P_CONV2D(1, 1)
-TEST_P_CONV2D(3, 3)
-TEST_P_CONV2D(5, 5)
-TEST_P_CONV2D(7, 7)
+// TEST_P_CONV2D(3, 3)
+// TEST_P_CONV2D(5, 5)
+// TEST_P_CONV2D(7, 7)
 
 INSTANTIATE_TEST_SUITE_P(Conv2DTest, Conv2DTestSuite, testing::Combine(Shape_Params, Stride_Params, Pad_Params));
