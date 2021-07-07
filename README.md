@@ -3,15 +3,16 @@ halide kernel generator
 
 # build with conan
 ```sh
-take build
-conan install ..
-cmake .. -DCMAKE_BUILD_TYPE=Debug
-make -j
+cmake . -DCMAKE_BUILD_TYPE=Debug -Bbuild
+cmake --build build -j 80
+cmake --install build --prefix build/package
 ```
 
-# benchmark & test
+# make conan package
 
-require nncase
+```sh
+conan create . 0.0.1@ --build=missing
+```
 
 
 

@@ -1,3 +1,4 @@
+#ifdef __linux__
 #include "hkg/generated_kernels/halide_conv2d_1x1_linux_avx2.h"
 #include "hkg/generated_kernels/halide_conv2d_1x1_linux_bare.h"
 #include "hkg/generated_kernels/halide_conv2d_1x1_linux_sse41.h"
@@ -13,6 +14,39 @@
 #include "hkg/generated_kernels/halide_conv2d_7x7_linux_avx2.h"
 #include "hkg/generated_kernels/halide_conv2d_7x7_linux_bare.h"
 #include "hkg/generated_kernels/halide_conv2d_7x7_linux_sse41.h"
+#elif _WIN32
+#include "hkg/generated_kernels/halide_conv2d_1x1_windows_avx2.h"
+#include "hkg/generated_kernels/halide_conv2d_1x1_windows_bare.h"
+#include "hkg/generated_kernels/halide_conv2d_1x1_windows_sse41.h"
+
+#include "hkg/generated_kernels/halide_conv2d_3x3_windows_avx2.h"
+#include "hkg/generated_kernels/halide_conv2d_3x3_windows_bare.h"
+#include "hkg/generated_kernels/halide_conv2d_3x3_windows_sse41.h"
+
+#include "hkg/generated_kernels/halide_conv2d_5x5_windows_avx2.h"
+#include "hkg/generated_kernels/halide_conv2d_5x5_windows_bare.h"
+#include "hkg/generated_kernels/halide_conv2d_5x5_windows_sse41.h"
+
+#include "hkg/generated_kernels/halide_conv2d_7x7_windows_avx2.h"
+#include "hkg/generated_kernels/halide_conv2d_7x7_windows_bare.h"
+#include "hkg/generated_kernels/halide_conv2d_7x7_windows_sse41.h"
+#elif __APPLE__
+#include "hkg/generated_kernels/halide_conv2d_1x1_osx_avx2.h"
+#include "hkg/generated_kernels/halide_conv2d_1x1_osx_bare.h"
+#include "hkg/generated_kernels/halide_conv2d_1x1_osx_sse41.h"
+
+#include "hkg/generated_kernels/halide_conv2d_3x3_osx_avx2.h"
+#include "hkg/generated_kernels/halide_conv2d_3x3_osx_bare.h"
+#include "hkg/generated_kernels/halide_conv2d_3x3_osx_sse41.h"
+
+#include "hkg/generated_kernels/halide_conv2d_5x5_osx_avx2.h"
+#include "hkg/generated_kernels/halide_conv2d_5x5_osx_bare.h"
+#include "hkg/generated_kernels/halide_conv2d_5x5_osx_sse41.h"
+
+#include "hkg/generated_kernels/halide_conv2d_7x7_osx_avx2.h"
+#include "hkg/generated_kernels/halide_conv2d_7x7_osx_bare.h"
+#include "hkg/generated_kernels/halide_conv2d_7x7_osx_sse41.h"
+#endif
 
 #include "target.h"
 #include <functional>

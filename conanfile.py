@@ -23,11 +23,10 @@ class HkgConan(ConanFile):
   exports_sources = ['src/*',
                      'include/*',
                      'cmake/*',
-                     'CMakeLists.txt',
-                     'kernels_generator.cpp']
+                     'CMakeLists.txt']
 
   def build_requirements(self):
-    self.requires("Halide/12.0.0")
+    self.build_requires("Halide/12.0.0")
 
   def config_options(self):
     if self.settings.arch != "x86_64":
@@ -37,9 +36,7 @@ class HkgConan(ConanFile):
     pass
 
   def source(self):
-    if os.path.exists('include/hkg'):
-      print("The generated kernel has been copyed to source, remove it!")
-      shutil.rmtree('include/hkg')
+    pass
 
   def cmake_configure(self):
     cmake = CMake(self)

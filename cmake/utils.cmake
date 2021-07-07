@@ -31,9 +31,9 @@ endmacro(halide_generate_runtime)
 
 macro(halide_generate_code_multi_os group_name func_name variable os_name)
     set(FUNC_BASE_NAME halide_${func_name}_${os_name})
-    set(OUTPUT_BASE_NAME  ${CMAKE_SOURCE_DIR}/include/${GENERATED_DIR}/${FUNC_BASE_NAME})
+    set(OUTPUT_BASE_NAME  ${CMAKE_SOURCE_DIR}/include/hkg/${GENERATED_DIR}/${FUNC_BASE_NAME})
     set(TARGET_BASE_NAME  no_asserts-no_bounds_query-no_runtime-${os_name}-x86-64)
-    set(OUTPUT_DIR  ${CMAKE_SOURCE_DIR}/include/${GENERATED_DIR})
+    set(OUTPUT_DIR  ${CMAKE_SOURCE_DIR}/include/hkg/${GENERATED_DIR})
 
     add_custom_command(
         OUTPUT ${OUTPUT_BASE_NAME}_avx2.s

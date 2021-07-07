@@ -1,4 +1,4 @@
-#include "include/kernels_generator.h"
+#include "kernels_generator.h"
 
 HALIDE_REGISTER_GENERATOR(halide_gnne_matmul, halide_gnne_matmul)
 
