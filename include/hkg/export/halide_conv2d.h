@@ -1,18 +1,18 @@
-#include "generated_kernels/halide_conv2d_1x1_linux_avx2.h"
-#include "generated_kernels/halide_conv2d_1x1_linux_bare.h"
-#include "generated_kernels/halide_conv2d_1x1_linux_sse41.h"
+#include "hkg/generated_kernels/halide_conv2d_1x1_linux_avx2.h"
+#include "hkg/generated_kernels/halide_conv2d_1x1_linux_bare.h"
+#include "hkg/generated_kernels/halide_conv2d_1x1_linux_sse41.h"
 
-#include "generated_kernels/halide_conv2d_3x3_linux_avx2.h"
-#include "generated_kernels/halide_conv2d_3x3_linux_bare.h"
-#include "generated_kernels/halide_conv2d_3x3_linux_sse41.h"
+#include "hkg/generated_kernels/halide_conv2d_3x3_linux_avx2.h"
+#include "hkg/generated_kernels/halide_conv2d_3x3_linux_bare.h"
+#include "hkg/generated_kernels/halide_conv2d_3x3_linux_sse41.h"
 
-#include "generated_kernels/halide_conv2d_5x5_linux_avx2.h"
-#include "generated_kernels/halide_conv2d_5x5_linux_bare.h"
-#include "generated_kernels/halide_conv2d_5x5_linux_sse41.h"
+#include "hkg/generated_kernels/halide_conv2d_5x5_linux_avx2.h"
+#include "hkg/generated_kernels/halide_conv2d_5x5_linux_bare.h"
+#include "hkg/generated_kernels/halide_conv2d_5x5_linux_sse41.h"
 
-#include "generated_kernels/halide_conv2d_7x7_linux_avx2.h"
-#include "generated_kernels/halide_conv2d_7x7_linux_bare.h"
-#include "generated_kernels/halide_conv2d_7x7_linux_sse41.h"
+#include "hkg/generated_kernels/halide_conv2d_7x7_linux_avx2.h"
+#include "hkg/generated_kernels/halide_conv2d_7x7_linux_bare.h"
+#include "hkg/generated_kernels/halide_conv2d_7x7_linux_sse41.h"
 
 #include "target.h"
 #include <functional>

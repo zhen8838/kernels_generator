@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Halide.h"
+#include <Halide.h>
 #include <algorithm>
 #include <cmath>
 #include <cstddef>

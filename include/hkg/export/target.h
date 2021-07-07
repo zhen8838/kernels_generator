@@ -81,16 +81,16 @@ Target get_host_target()
         cpuid(info2, 7, 0);
         const uint32_t avx2 = 1U << 5;
         const uint32_t avx512f = 1U << 16;
-        const uint32_t avx512dq = 1U << 17;
-        const uint32_t avx512pf = 1U << 26;
-        const uint32_t avx512er = 1U << 27;
+        // const uint32_t avx512dq = 1U << 17;
+        // const uint32_t avx512pf = 1U << 26;
+        // const uint32_t avx512er = 1U << 27;
         const uint32_t avx512cd = 1U << 28;
-        const uint32_t avx512bw = 1U << 30;
-        const uint32_t avx512vl = 1U << 31;
-        const uint32_t avx512ifma = 1U << 21;
+        // const uint32_t avx512bw = 1U << 30;
+        // const uint32_t avx512vl = 1U << 31;
+        // const uint32_t avx512ifma = 1U << 21;
         const uint32_t avx512 = avx512f | avx512cd;
         //  const uint32_t avx512_knl = avx512 | avx512pf | avx512er;
-        const uint32_t avx512_skylake = avx512 | avx512vl | avx512bw | avx512dq;
+        // const uint32_t avx512_skylake = avx512 | avx512vl | avx512bw | avx512dq;
         //  const uint32_t avx512_cannonlake = avx512_skylake | avx512ifma; // Assume ifma => vbmi
         if ((info2[1] & avx2) == avx2)
         {

@@ -1,5 +1,5 @@
-if(NOT DEFINED KERNEL_SRCS OR NOT DEFINED RUNTIME_LIBS)
-    message(FATAL_ERROR "you must set the KERNEL_SRCS and RUNTIME_LIBS variable to save the generated source file path" )
+if(NOT DEFINED KERNEL_SRCS OR NOT DEFINED RUNTIME_LIBS OR NOT DEFINED RUNTIME_Targets)
+    message(FATAL_ERROR "you must set the KERNEL_SRCS and RUNTIME_LIBS and RUNTIME_Targets variable to save the generated source file path" )
 endif()
 
 set(GENERATED_DIR "generated_kernels")
@@ -12,18 +12,20 @@ macro(halide_generate_runtime)
         endif()
 
         add_custom_command(
-            OUTPUT lib/halide_runtime_${os_name}.${suffix}
-            COMMAND ${CMAKE_COMMAND} -E make_directory include/${GENERATED_DIR}
-            COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -r halide_runtime_${os_name} -o include/${GENERATED_DIR} -e static_library,c_header target=${os_name}-x86-64
+            OUTPUT ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/halide_runtime_${os_name}.${suffix}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+            COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -r halide_runtime_${os_name} -o ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -e static_library,c_header target=${os_name}-x86-64
             DEPENDS kernels_generator
         )
-
-        add_library(hkg_${os_name}_runtime STATIC lib/halide_runtime_${os_name}.${suffix})
-        target_link_libraries(hkg_${os_name}_runtime PRIVATE -ldl)
-        set_target_properties(hkg_${os_name}_runtime PROPERTIES OUTPUT_NAME "")
+        add_library(hkg_${os_name}_runtime INTERFACE)
+        target_link_libraries(hkg_${os_name}_runtime INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/halide_runtime_${os_name}.${suffix}> 
+        $<INSTALL_INTERFACE:$\{_IMPORT_PREFIX\}/lib/halide_runtime_${os_name}.${suffix}> -ldl) # NOTE need find better method to export lib path.
+        set_target_properties(hkg_${os_name}_runtime PROPERTIES EXPORT_NAME ${os_name}_runtime)
         add_library(hkg::${os_name}_runtime ALIAS hkg_${os_name}_runtime)
 
-        list(APPEND RUNTIME_LIBS lib/halide_runtime_${os_name}.${suffix})
+        list(APPEND RUNTIME_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/halide_runtime_${os_name}.${suffix})    
+        list(APPEND RUNTIME_Targets hkg_${os_name}_runtime)    
     endforeach()
 endmacro(halide_generate_runtime)
 

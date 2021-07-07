@@ -1,5 +1,5 @@
 #pragma once
-#include "halide_kernels.h"
+#include "hkg/kernels/halide_kernels.h"
 using namespace Halide;
 
 class halide_matmul : public Halide::Generator<halide_matmul>

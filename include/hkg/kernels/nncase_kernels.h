@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nncase.h"
+#include "hkg/utils/nncase.h"
 #include <algorithm>
 #include <array>
 #include <cmath>

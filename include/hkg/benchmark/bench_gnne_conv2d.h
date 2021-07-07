@@ -1,6 +1,6 @@
 #pragma once
-#include "../nncase_kernels.h"
-#include "../utils.h"
+#include "hkg/kernels/nncase_kernels.h"
+#include "hkg/utils/utils.h"
 #include "nncase.h"
 #include <celero/Celero.h>
 #include <cmath>

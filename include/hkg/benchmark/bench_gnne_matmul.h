@@ -1,7 +1,7 @@
 #pragma once
-#include "../nncase_kernels.h"
-#include "../utils.h"
-#include "nncase.h"
+#include "hkg/kernels/nncase_kernels.h"
+#include "hkg/utils/nncase.h"
+#include "hkg/utils/utils.h"
 #include <celero/Celero.h>
 #include <tuple>
 #include <vector>

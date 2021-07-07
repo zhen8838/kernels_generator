@@ -14,8 +14,10 @@ if(ENABLE_ONLY_BENCHMARK_TEST)
                     BUILD missing)
     include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
     find_package(hkg REQUIRED)
-    add_subdirectory(benchmark)
-    add_subdirectory(tests)
+    find_package(GTest REQUIRED)
+    find_package(Celero REQUIRED)
+    add_subdirectory(src/benchmark)
+    add_subdirectory(src/tests)
 else()
     if(CONAN_EXPORTED) # in conan local cache
         message(STATUS "Standard Conan Installation")
@@ -24,7 +26,7 @@ else()
     else() # in user space
         message(STATUS "Auto Cmake Conan Installation")
         include(cmake/conan.cmake)
-        conan_cmake_run(CONANFILE conanfile.py
+        conan_cmake_run(CONANFILE conanfile-build.txt
                         BASIC_SETUP
                         BUILD missing)
     endif()
@@ -32,6 +34,7 @@ else()
     # for generate code
     set(KERNEL_SRCS "")
     set(RUNTIME_LIBS "")
+    set(RUNTIME_Targets "")
     include(cmake/utils.cmake)
 
     find_package(Halide REQUIRED)
@@ -61,16 +64,20 @@ else()
 
     halide_generate_runtime()
 
-    foreach(WH "1;1" "3;3" "5;5" "7;7")
+    foreach(WH "1;1" )#"3;3" "5;5" "7;7")
         list(GET WH 0 KH)
         list(GET WH -1 KW)
         halide_generate_code(conv2d "conv2d_${KH}x${KW}" "kernel_height=${KH};kernel_width=${KW}")
     endforeach(WH)
 
-
-    add_custom_target(generated_kernels
-        SOURCES ${KERNEL_SRCS}
+    add_custom_target(hkg_generated_kernels
+        SOURCES ${KERNEL_SRCS} 
         DEPENDS kernels_generator ${RUNTIME_LIBS})
+
+    # add_library(hkg_generated_kernels INTERFACE ${KERNEL_SRCS} ${RUNTIME_LIBS})
+    # add_dependencies(kernels_generator ${RUNTIME_Targets})
+    # add_library(hkg::hkg_generated_kernels ALIAS hkg_generated_kernels)
+    
     
     # sub code
     if(ENABLE_BENCHMARK)
@@ -79,7 +86,6 @@ else()
             BASIC_SETUP
             BUILD missing)
         include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
-
         find_package(GTest REQUIRED)
         find_package(Celero REQUIRED)
 
@@ -91,20 +97,27 @@ else()
 
     # ----------- install -----------
 
-    # install generated kernels
-    install(DIRECTORY include/${GENERATED_DIR}
-            DESTINATION include
-            FILES_MATCHING
-            PATTERN "*.h"
-            PATTERN "*.s"
-            PATTERN "*.stmt"
-            PATTERN "*.a"
-    )
-
-    # install headers
+    # install all headers.
     install(DIRECTORY include/hkg
-            DESTINATION include
-            FILES_MATCHING
-            PATTERN "*.h"
-    )
+            DESTINATION include)
+    # NOTE install halide header from conan test
+    install(FILES ${Halide_INCLUDES}/HalideBuffer.h ${Halide_INCLUDES}/HalideRuntime.h
+            DESTINATION include)
+
+    install(DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/
+            DESTINATION lib)
+
+    install(TARGETS ${RUNTIME_Targets} EXPORT hkgTargets
+        INCLUDES DESTINATION include
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib)
+
+    # install(TARGETS hkg_generated_kernels EXPORT hkgTargets)
+
+    install(EXPORT hkgTargets
+        DESTINATION lib/cmake/
+        NAMESPACE hkg::)
+
+    configure_file(cmake/hkgConfig.cmake.in hkgConfig.cmake @ONLY)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hkgConfig.cmake DESTINATION lib/cmake/)
 endif()
