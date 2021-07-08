@@ -1,4 +1,4 @@
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(MSVC)
     enable_language(ASM_MASM)
 else()
     enable_language(ASM)
