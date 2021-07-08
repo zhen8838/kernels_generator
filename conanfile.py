@@ -54,4 +54,4 @@ class HkgConan(ConanFile):
     cmake.install()
 
   def package_info(self):
-    pass
+    self.cpp_info.build_modules = ['lib/cmake/hkgTargets.cmake','lib/cmake/hkgHelper.cmake']

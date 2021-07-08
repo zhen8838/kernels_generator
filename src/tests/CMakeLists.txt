@@ -1,14 +1,8 @@
 enable_language(ASM)
+enable_testing()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-   set(os_name "linux")
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(os_name "osx")
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(os_name "windows")
-endif()
-
-set(runtime_lib hkg::${os_name}_runtime)
+set(os_runtime_lib "")
+hkg_get_runtime_lib(os_runtime_lib)
 
 macro(add_one_test name)
     file(GLOB ASM_SRC ${CMAKE_SOURCE_DIR}/include/hkg/generated_kernels/halide_${name}*${os_name}*.s)
@@ -17,7 +11,7 @@ macro(add_one_test name)
         # NOTE the cmake must dependence the generated_kernels
         add_dependencies(test_gen_${name} hkg_generated_kernels)    
     endif()
-    target_link_libraries(test_gen_conv2d GTest::gtest_main celero::celero ${runtime_lib} -lpthread)
+    target_link_libraries(test_gen_conv2d GTest::gtest_main celero::celero ${os_runtime_lib} -lpthread)
     add_test(NAME test_gen_${name} COMMAND test_gen_${name})
 endmacro()
 

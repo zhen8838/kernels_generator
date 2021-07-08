@@ -7,8 +7,11 @@ option(ENABLE_BENCHMARK "ENABLE_BENCHMARK" ON)
 option(ENABLE_TEST "ENABLE_TEST" ON)
 option(ENABLE_ONLY_BENCHMARK_TEST "use conan package only build and run benchmark & test, when enable this " OFF)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+
 if(ENABLE_ONLY_BENCHMARK_TEST)
     include(cmake/conan.cmake)
+    conan_add_remote(NAME sunnycase URL https://conan.sunnycase.moe INDEX 0)
     conan_cmake_run(CONANFILE conanfile-test-only.txt
                     BASIC_SETUP
                     BUILD missing)
@@ -31,11 +34,12 @@ else()
                         BUILD missing)
     endif()
     include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
-    # for generate code
+    # set global var
     set(KERNEL_SRCS "")
     set(RUNTIME_LIBS "")
     set(RUNTIME_Targets "")
-    include(cmake/utils.cmake)
+    set(GENERATED_DIR "generated_kernels")
+    include(cmake/hkgHelper.cmake)
 
     find_package(Halide REQUIRED)
 
@@ -53,7 +57,7 @@ else()
         target_link_libraries(kernels_generator Halide::Generator)
     endif()
 
-    # generate codes
+    # generate codes and runtime libs
     # halide_generate_code(gnne_matmul gnne_matmul "")
 
     # foreach(WH "1;1" "3;3" "5;5" "7;7")
@@ -116,4 +120,5 @@ else()
 
     configure_file(cmake/hkgConfig.cmake.in hkgConfig.cmake @ONLY)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hkgConfig.cmake DESTINATION lib/cmake/)
+    install(FILES cmake/hkgHelper.cmake DESTINATION lib/cmake/)
 endif()

@@ -1,3 +1,4 @@
 build
+build_test
 .vscode
 include/hkg/generated_kernels
