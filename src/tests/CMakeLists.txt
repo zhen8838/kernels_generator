@@ -1,4 +1,10 @@
-enable_language(ASM)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    enable_language(ASM_MASM)
+else()
+    enable_language(ASM)
+endif()
+
+
 enable_testing()
 
 set(os_runtime_lib "")
