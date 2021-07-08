@@ -65,11 +65,11 @@ auto get_data(size_t batch, size_t in_channels, size_t height, size_t width, siz
     v_range.allocate();
     v_range.as_value_range(range_t::full);
 
-    return std::make_tuple(input, weights, output, bias, v_range, padding_h, padding_w);
+    return std::make_tuple(std::move(input), std::move(weights), std::move(output), std::move(bias), std::move(v_range), padding_h, padding_w);
 }
 
 // class Conv2DTestFixture : public celero::TestFixture
-// {
+// {s
 // public:
 //     Tensor_t<NNCASE_TYPE_t, NNCASE_TYPE_t> input, weights, output, bias, v_range;
 //     nncase::runtime_shape_t in_shape, in_strides, w_shape, w_strides, bias_strides, output_strides;

@@ -59,7 +59,7 @@ template <typename Iterator, typename dest_t>
 void init_blob(Iterator src, dest_t *&dest, nncase::runtime_shape_t shape)
 {
     assert(src != nullptr);
-    auto size =nncase::runtime::compute_size(shape);
+    auto size = nncase::runtime::compute_size(shape);
     if (dest == nullptr)
     {
         dest = new dest_t[size];
@@ -81,7 +81,7 @@ void init_blob(Iterator src, dest_t *&dest, nncase::runtime_shape_t shape)
 template <typename T>
 void init_blob(T *&m, init_method method, nncase::runtime_shape_t shape, T base)
 {
-    size_t size =nncase::runtime::compute_size(shape);
+    size_t size = nncase::runtime::compute_size(shape);
     if (m == nullptr)
     {
         m = new T[size];
@@ -199,7 +199,8 @@ struct Tensor_t
     std::string name;
     Tensor_t()
         : raw(nullptr), nraw(nullptr), hraw(nullptr), name("") {};
-    Tensor_t(Tensor_t &other)
+
+    Tensor_t(Tensor_t &&other)
         : shape(other.shape), hbuf(other.hbuf), name(other.name)
     {
         if (nraw)
