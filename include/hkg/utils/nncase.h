@@ -2,6 +2,7 @@
 #include "bfloat16.h"
 #include "small_vector.h"
 #include <numeric>
+#include <algorithm>
 namespace nncase
 {
 struct padding
