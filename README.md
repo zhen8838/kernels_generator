@@ -21,6 +21,7 @@ ctest --verbose -C
 # build pipeline
 ```sh
 conan remove hkg
+conan remove hkg -r sunnycase
 conan create . hkg/0.0.1@ --build=missing
 conan upload hkg/0.0.1  --all -r sunnycase 
 ```

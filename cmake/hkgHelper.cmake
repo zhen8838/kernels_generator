@@ -32,30 +32,35 @@ macro(halide_generate_code_multi_os group_name func_name variable os_name)
     set(OUTPUT_BASE_NAME  ${CMAKE_SOURCE_DIR}/include/hkg/${GENERATED_DIR}/${FUNC_BASE_NAME})
     set(TARGET_BASE_NAME  no_asserts-no_bounds_query-no_runtime-${os_name}-x86-64)
     set(OUTPUT_DIR  ${CMAKE_SOURCE_DIR}/include/hkg/${GENERATED_DIR})
-
+    if(os_name STREQUAL "windows")
+        set(stuffix "obj")
+    else()
+        set(stuffix "o")
+    endif()
+    
     add_custom_command(
-        OUTPUT ${OUTPUT_BASE_NAME}_avx2.s
+        OUTPUT ${OUTPUT_BASE_NAME}_avx2.${stuffix}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
-        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_avx2 -o ${OUTPUT_DIR} -e c_header,assembly,schedule,stmt target=${TARGET_BASE_NAME}-avx2-fma ${variable}
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_avx2 -o ${OUTPUT_DIR} -e c_header,object,schedule,stmt target=${TARGET_BASE_NAME}-avx2-fma ${variable}
         DEPENDS kernels_generator
     )
 
     add_custom_command(
-        OUTPUT ${OUTPUT_BASE_NAME}_sse41.s
-        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_sse41 -o ${OUTPUT_DIR} -e c_header,assembly,schedule,stmt target=${TARGET_BASE_NAME}-sse41 ${variable}
+        OUTPUT ${OUTPUT_BASE_NAME}_sse41.${stuffix}
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_sse41 -o ${OUTPUT_DIR} -e c_header,object,schedule,stmt target=${TARGET_BASE_NAME}-sse41 ${variable}
         DEPENDS kernels_generator
     )
 
     add_custom_command(
-        OUTPUT ${OUTPUT_BASE_NAME}_bare.s
-        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_bare -o ${OUTPUT_DIR} -e c_header,assembly,schedule,stmt target=${TARGET_BASE_NAME} ${variable}
+        OUTPUT ${OUTPUT_BASE_NAME}_bare.${stuffix}
+        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_bare -o ${OUTPUT_DIR} -e c_header,object,schedule,stmt target=${TARGET_BASE_NAME} ${variable}
         DEPENDS kernels_generator
     )
 
     list(APPEND KERNEL_SRCS 
-        ${OUTPUT_BASE_NAME}_avx2.s
-        ${OUTPUT_BASE_NAME}_sse41.s
-        ${OUTPUT_BASE_NAME}_bare.s
+        ${OUTPUT_BASE_NAME}_avx2.${stuffix}
+        ${OUTPUT_BASE_NAME}_sse41.${stuffix}
+        ${OUTPUT_BASE_NAME}_bare.${stuffix}
     ) 
 endmacro()
 
