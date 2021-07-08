@@ -17,3 +17,10 @@ cmake --build build_test --config Debug
 cd build_test/src/tests/
 ctest --verbose -C
 ```
+
+# build pipeline
+```sh
+conan remove hkg
+conan create . hkg/0.0.1@ --build=missing
+conan upload hkg/0.0.1  --all -r sunnycase 
+```
