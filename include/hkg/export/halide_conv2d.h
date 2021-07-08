@@ -52,11 +52,11 @@
 #include <functional>
 
 #define halide_conv2d_hxw_os(kh, kw, os)                 \
-    if (internal::host_target.feature_avx2)              \
+    if (internal::host_target.avx2)              \
     {                                                    \
         func = halide_conv2d_##kh##x##kw##_##os##_avx2;  \
     }                                                    \
-    else if (internal::host_target.feature_sse41)        \
+    else if (internal::host_target.sse41)        \
     {                                                    \
         func = halide_conv2d_##kh##x##kw##_##os##_sse41; \
     }                                                    \
