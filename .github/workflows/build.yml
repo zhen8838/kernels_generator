@@ -44,14 +44,18 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: cmake -G Ninja $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_ONLY_BENCHMARK_TEST=ON
 
-
     - name: Build
       shell: bash
       working-directory: ${{github.workspace}}/build
       run: |
         cmake --build . --config $BUILD_TYPE
 
-    - name: CTest
+    - name: CTest Backend Feature
       shell: bash
-      working-directory: ${{github.workspace}}/build/bin
-      run: ctest -C $BUILD_TYPE
+      working-directory: ${{github.workspace}}/build/src/tests
+      run: ctest -V -R feature -C $BUILD_TYPE
+
+    - name: CTest Backend conv2d
+      shell: bash
+      working-directory: ${{github.workspace}}/build/src/tests
+      run: ctest -R conv2d -C $BUILD_TYPE

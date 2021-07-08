@@ -15,4 +15,7 @@ macro(add_one_test name)
     add_test(NAME test_gen_${name} COMMAND test_gen_${name})
 endmacro()
 
+add_executable(test_feature test_feature.cpp)
+target_link_libraries(test_feature GTest::gtest_main)
+add_test(NAME test_feature COMMAND test_feature)
 add_one_test(conv2d)
