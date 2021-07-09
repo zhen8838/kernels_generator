@@ -65,36 +65,33 @@ else()
 
     halide_generate_runtime(RUNTIME_LIBS RUNTIME_Targets)
 
-    set(conv2d_all_srcs "")
-    set(conv2d_all_linux_header "")
-    set(conv2d_all_osx_header "")
-    set(conv2d_all_windows_header "")
-    foreach(WH "1;1" "3;3" "5;5" "7;7")
-        set(conv2d_srcs "")
-        set(conv2d_linux_header "")
-        set(conv2d_osx_header "")
-        set(conv2d_windows_header "")
-        list(GET WH 0 KH)
-        list(GET WH -1 KW)
-        halide_generate_code(conv2d "conv2d_${KH}x${KW}" "kernel_height=${KH};kernel_width=${KW}" 
-            conv2d_srcs
-            conv2d_linux_header
-            conv2d_osx_header
-            conv2d_windows_header)
-        list(APPEND conv2d_all_srcs ${conv2d_srcs})
-        list(APPEND conv2d_all_linux_header ${conv2d_linux_header})
-        list(APPEND conv2d_all_osx_header ${conv2d_osx_header})
-        list(APPEND conv2d_all_windows_header ${conv2d_windows_header})
+    include(cmake/codegen.cmake)
+
+    # add_custom_target(hkg_generated_kernels
+    #     SOURCES ${KERNEL_SRCS}
+    #     DEPENDS kernels_generator ${RUNTIME_LIBS})        
+    # add dummy to force exec the generator
+    add_library(hkg_generated_kernels src/dummy.cpp ${KERNEL_SRCS} ${RUNTIME_LIBS})
+    add_dependencies(hkg_generated_kernels kernels_generator)
+    add_library(hkg::generated_kernels ALIAS hkg_generated_kernels)
+    set_target_properties(hkg_generated_kernels PROPERTIES EXPORT_NAME generated_kernels)
+
+    # make src target for sub project use
+    set(SRCS_Targets "")
+    set(os_name_list "linux;osx;windows")
+    set(src_name_list "LINUX_SRCS;OSX_SRCS;WIN_SRCS")
+    foreach(os_name src_name IN ZIP_LISTS os_name_list src_name_list)
+        # the `src_name` as a **pointer, so get value by `${${src_name}}`
+        add_library(hkg_${os_name}_src INTERFACE)
+        replace_src_path(${src_name} INSTALL_SRCS)
+        message("ffff ${${src_name}}")
+        target_link_libraries(hkg_${os_name}_src INTERFACE 
+            $<BUILD_INTERFACE:"${${src_name}}">
+            $<INSTALL_INTERFACE:${INSTALL_SRCS}>)
+        add_library(hkg::${os_name}_src ALIAS hkg_${os_name}_src)    
+        list(APPEND SRCS_Targets "hkg_${os_name}_src")
+        set_target_properties(hkg_${os_name}_src PROPERTIES EXPORT_NAME ${os_name}_src)
     endforeach()
-    message("---------- fyck !! ${conv2d_linux_header}")
-    insert_header(conv2d "${conv2d_all_linux_header}" "${conv2d_all_osx_header}" "${conv2d_all_windows_header}")  
-    list(APPEND KERNEL_SRCS "${conv2d_all_srcs}")
-
-    message("shit !!! ${KERNEL_SRCS}")
-
-    add_custom_target(hkg_generated_kernels
-        SOURCES ${KERNEL_SRCS}
-        DEPENDS kernels_generator ${RUNTIME_LIBS})
 
     # sub code
     if(ENABLE_BENCHMARK)
@@ -111,8 +108,6 @@ else()
             add_subdirectory(src/tests)
         endif()
     else()
-        # add dummy to force exec the generator
-        add_library(dummy src/dummy.cpp ${KERNEL_SRCS} ${RUNTIME_LIBS})
     endif()
 
     # ----------- install -----------
@@ -127,10 +122,12 @@ else()
     install(FILES ${RUNTIME_LIBS}
             DESTINATION lib)
 
-    install(TARGETS ${RUNTIME_Targets} EXPORT hkgTargets
+    install(TARGETS ${RUNTIME_Targets} ${SRCS_Targets} EXPORT hkgTargets
         INCLUDES DESTINATION include
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib)
+
+    install(TARGETS hkg_generated_kernels EXPORT hkgTargets)
 
     install(EXPORT hkgTargets
         DESTINATION lib/cmake/

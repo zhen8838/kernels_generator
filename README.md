@@ -26,3 +26,9 @@ conan remove hkg -r sunnycase
 conan create . hkg/0.0.1@ --build=missing
 conan upload hkg/0.0.1  --all -r sunnycase 
 ```
+
+# rebuilding and test
+
+```sh
+rm -rf build include/hkg/generated_kernels/
+```

@@ -34,10 +34,16 @@ endfunction()
 function(halide_generate_runtime RUNTIME_LIBS RUNTIME_Targets)
     set(internel_runtime_libs "")
     set(internel_runtime_targets "")
+    set(extra_lib "")
     foreach(os_name linux;osx;windows)
         set(obj_suffix "")
         set(lib_suffix "")
         hkg_get_suffix(obj_suffix lib_suffix ${os_name})
+        if(${os_name} STREQUAL windows)
+           set(extra_lib "") 
+        else()
+            set(extra_lib "-ldl")
+        endif()
 
         add_custom_command(
             OUTPUT ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/halide_runtime_${os_name}.${lib_suffix}
@@ -48,7 +54,7 @@ function(halide_generate_runtime RUNTIME_LIBS RUNTIME_Targets)
         add_library(hkg_${os_name}_runtime INTERFACE)
         target_link_libraries(hkg_${os_name}_runtime INTERFACE
         $<BUILD_INTERFACE:${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/halide_runtime_${os_name}.${lib_suffix}> 
-        $<INSTALL_INTERFACE:$\{_IMPORT_PREFIX\}/lib/halide_runtime_${os_name}.${lib_suffix}> -ldl) # NOTE need find better method to export lib path.
+        $<INSTALL_INTERFACE:$\{_IMPORT_PREFIX\}/lib/halide_runtime_${os_name}.${lib_suffix}> ${extra_lib}) # NOTE need find better method to export lib path.
         set_target_properties(hkg_${os_name}_runtime PROPERTIES EXPORT_NAME ${os_name}_runtime)
         add_library(hkg::${os_name}_runtime ALIAS hkg_${os_name}_runtime)
 
@@ -91,6 +97,7 @@ function(halide_generate_code_multi_os group_name func_name variable os_name RET
             COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_${feature} -o ${OUTPUT_DIR} -e c_header,object,schedule,stmt target=${TARGET_BASE_NAME}${full_feature} ${variable}
             DEPENDS kernels_generator
         )
+        message(${OUTPUT_BASE_NAME}_${feature}.${obj_suffix})
         list(APPEND SRCS ${OUTPUT_BASE_NAME}_${feature}.${obj_suffix})
         list(APPEND HEADER ${HEADER_BAST_NAME}_${feature}.h)
     endforeach()
@@ -98,21 +105,25 @@ function(halide_generate_code_multi_os group_name func_name variable os_name RET
     set(${RET_HEADER} ${HEADER} PARENT_SCOPE)
 endfunction()
 
-function(halide_generate_code group_name func_name variable RET_KERNEL_SRCS RET_LINUX_KERNEL_HEADER RET_OSX_KERNEL_HEADER RET_WIN_KERNEL_HEADER)
-    set(LINUX_KERNEL_SRCS "")
-    set(OSX_KERNEL_SRCS "")
-    set(WIN_KERNEL_SRCS "")
-    set(LINUX_KERNEL_HEADER "")
-    set(OSX_KERNEL_HEADER "")
-    set(WIN_KERNEL_HEADER "")
-    halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" linux LINUX_KERNEL_SRCS LINUX_KERNEL_HEADER)
-    halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" osx OSX_KERNEL_SRCS OSX_KERNEL_HEADER)
-    halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" windows WIN_KERNEL_SRCS WIN_KERNEL_HEADER)
+function(halide_generate_code group_name func_name variable 
+        RET_LINUX_SRCS RET_OSX_SRCS RET_WIN_SRCS 
+        RET_LINUX_HEADER RET_OSX_HEADER RET_WIN_HEADER)
+    set(LINUX_SRCS "")
+    set(OSX_SRCS "")
+    set(WIN_SRCS "")
+    set(LINUX_HEADER "")
+    set(OSX_HEADER "")
+    set(WIN_HEADER "")
+    halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" linux LINUX_SRCS LINUX_HEADER)
+    halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" osx OSX_SRCS OSX_HEADER)
+    halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" windows WIN_SRCS WIN_HEADER)
 
-    set(${RET_KERNEL_SRCS} "${LINUX_KERNEL_SRCS};${OSX_KERNEL_SRCS};${WIN_KERNEL_SRCS}" PARENT_SCOPE)
-    set(${RET_LINUX_KERNEL_HEADER} ${LINUX_KERNEL_HEADER} PARENT_SCOPE)
-    set(${RET_OSX_KERNEL_HEADER} ${OSX_KERNEL_HEADER} PARENT_SCOPE)
-    set(${RET_WIN_KERNEL_HEADER} ${WIN_KERNEL_HEADER} PARENT_SCOPE)
+    set(${RET_LINUX_SRCS} ${LINUX_SRCS} PARENT_SCOPE)
+    set(${RET_OSX_SRCS} ${OSX_SRCS} PARENT_SCOPE)
+    set(${RET_WIN_SRCS} ${WIN_SRCS} PARENT_SCOPE)
+    set(${RET_LINUX_HEADER} ${LINUX_HEADER} PARENT_SCOPE)
+    set(${RET_OSX_HEADER} ${OSX_HEADER} PARENT_SCOPE)
+    set(${RET_WIN_HEADER} ${WIN_HEADER} PARENT_SCOPE)
 endfunction()
 
 
@@ -133,3 +144,16 @@ function(insert_header func_name linux_header_list osx_header_list windows_heade
     concat_header("${windows_header_list}" windows_include_list)
     configure_file(include/hkg/export/halide_${func_name}.h.in ${CMAKE_SOURCE_DIR}/include/hkg/export/halide_${func_name}.h)
 endfunction()
+
+
+function(replace_src_path cur_src_path_list RET_INSTALL_SRCS_PATH)
+    set(INSTALL_SRCS_PATH "")
+    string(LENGTH ${CMAKE_SOURCE_DIR} length)
+    foreach(src_path IN LISTS ${cur_src_path_list})
+        string(SUBSTRING ${src_path} ${length} -1 no_prefix_path)
+        set(install_path "$\{_IMPORT_PREFIX\}${no_prefix_path}") 
+        # message(${install_path})
+        list(APPEND INSTALL_SRCS_PATH ${install_path})
+    endforeach()
+    set(${RET_INSTALL_SRCS_PATH} ${INSTALL_SRCS_PATH} PARENT_SCOPE)
+endfunction(replace_src_path)
