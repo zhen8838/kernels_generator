@@ -31,10 +31,9 @@ function(hkg_get_suffix obj_suffix lib_suffix)
 endfunction()
 
 
-macro(halide_generate_runtime)
-    if(NOT DEFINED RUNTIME_LIBS OR NOT DEFINED RUNTIME_Targets)
-        message(FATAL_ERROR "you must set the RUNTIME_LIBS and RUNTIME_Targets variable to save the generated source file path" )
-    endif()
+function(halide_generate_runtime RUNTIME_LIBS RUNTIME_Targets)
+    set(internel_runtime_libs "")
+    set(internel_runtime_targets "")
     foreach(os_name linux;osx;windows)
         set(obj_suffix "")
         set(lib_suffix "")
@@ -53,57 +52,84 @@ macro(halide_generate_runtime)
         set_target_properties(hkg_${os_name}_runtime PROPERTIES EXPORT_NAME ${os_name}_runtime)
         add_library(hkg::${os_name}_runtime ALIAS hkg_${os_name}_runtime)
 
-        list(APPEND RUNTIME_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/halide_runtime_${os_name}.${lib_suffix})    
-        list(APPEND RUNTIME_Targets hkg_${os_name}_runtime)    
+        list(APPEND internel_runtime_libs ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/halide_runtime_${os_name}.${lib_suffix})    
+        list(APPEND internel_runtime_targets hkg_${os_name}_runtime)    
     endforeach()
-endmacro(halide_generate_runtime)
+    set(${RUNTIME_LIBS} ${internel_runtime_libs} PARENT_SCOPE)
+    set(${RUNTIME_Targets} ${internel_runtime_targets} PARENT_SCOPE)
+endfunction()
 
-macro(halide_generate_code_multi_os group_name func_name variable os_name)
+function(halide_generate_code_multi_os group_name func_name variable os_name RET_SRC RET_HEADER)
     set(FUNC_BASE_NAME halide_${func_name}_${os_name})
-    set(OUTPUT_BASE_NAME  ${CMAKE_SOURCE_DIR}/include/hkg/${GENERATED_DIR}/${FUNC_BASE_NAME})
+    set(OUTPUT_BASE_NAME  ${CMAKE_SOURCE_DIR}/include/hkg/generated_kernels/${FUNC_BASE_NAME})
+    set(HEADER_BAST_NAME hkg/generated_kernels/${FUNC_BASE_NAME})
     set(TARGET_BASE_NAME  no_asserts-no_bounds_query-no_runtime-${os_name}-x86-64)
-    set(OUTPUT_DIR  ${CMAKE_SOURCE_DIR}/include/hkg/${GENERATED_DIR})
+    set(OUTPUT_DIR  ${CMAKE_SOURCE_DIR}/include/hkg/generated_kernels)
+    set(SRCS "")
+    set(HEADER "")
+
     set(obj_suffix "")
     set(lib_suffix "")
     hkg_get_suffix(obj_suffix lib_suffix ${os_name})
+    
+    # four version
+    list(APPEND feature_list 
+        "avx512" 
+        "avx2" 
+        "sse41" 
+        "bare")
+    list(APPEND full_feature_list 
+        "-sse41-avx-f16c-fma-avx2-avx512" 
+        "-avx-avx2-f16c-fma-sse41"
+        "-avx-f16c-sse41"
+        "")
 
-    add_custom_command(
-        OUTPUT ${OUTPUT_BASE_NAME}_avx2.${obj_suffix}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
-        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_avx2 -o ${OUTPUT_DIR} -e c_header,object,schedule,stmt target=${TARGET_BASE_NAME}-avx2-fma ${variable}
-        DEPENDS kernels_generator
-    )
-
-    add_custom_command(
-        OUTPUT ${OUTPUT_BASE_NAME}_sse41.${obj_suffix}
-        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_sse41 -o ${OUTPUT_DIR} -e c_header,object,schedule,stmt target=${TARGET_BASE_NAME}-sse41 ${variable}
-        DEPENDS kernels_generator
-    )
-
-    add_custom_command(
-        OUTPUT ${OUTPUT_BASE_NAME}_bare.${obj_suffix}
-        COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_bare -o ${OUTPUT_DIR} -e c_header,object,schedule,stmt target=${TARGET_BASE_NAME} ${variable}
-        DEPENDS kernels_generator
-    )
-
-    list(APPEND KERNEL_SRCS 
-        ${OUTPUT_BASE_NAME}_avx2.${obj_suffix}
-        ${OUTPUT_BASE_NAME}_sse41.${obj_suffix}
-        ${OUTPUT_BASE_NAME}_bare.${obj_suffix}
-    ) 
-endmacro()
-
-
-macro(halide_generate_code group_name func_name variable)
-    if(NOT DEFINED KERNEL_SRCS)
-        message(FATAL_ERROR "you must set the KERNEL_SRCS variable to save the generated source file path" )
-    endif()
-    if(NOT DEFINED GENERATED_DIR)
-        message(FATAL_ERROR "you must set the GENERATED_DIR variable to save the generated source file path" )
-    endif()
-    foreach(os_name linux;osx;windows)
-        halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" "${os_name}")
+    foreach(feature full_feature IN ZIP_LISTS feature_list full_feature_list)
+        add_custom_command(
+            OUTPUT ${OUTPUT_BASE_NAME}_${feature}.${obj_suffix}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
+            COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_${feature} -o ${OUTPUT_DIR} -e c_header,object,schedule,stmt target=${TARGET_BASE_NAME}${full_feature} ${variable}
+            DEPENDS kernels_generator
+        )
+        list(APPEND SRCS ${OUTPUT_BASE_NAME}_${feature}.${obj_suffix})
+        list(APPEND HEADER ${HEADER_BAST_NAME}_${feature}.h)
     endforeach()
-endmacro()
+    set(${RET_SRC} ${SRCS} PARENT_SCOPE)
+    set(${RET_HEADER} ${HEADER} PARENT_SCOPE)
+endfunction()
+
+function(halide_generate_code group_name func_name variable RET_KERNEL_SRCS RET_LINUX_KERNEL_HEADER RET_OSX_KERNEL_HEADER RET_WIN_KERNEL_HEADER)
+    set(LINUX_KERNEL_SRCS "")
+    set(OSX_KERNEL_SRCS "")
+    set(WIN_KERNEL_SRCS "")
+    set(LINUX_KERNEL_HEADER "")
+    set(OSX_KERNEL_HEADER "")
+    set(WIN_KERNEL_HEADER "")
+    halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" linux LINUX_KERNEL_SRCS LINUX_KERNEL_HEADER)
+    halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" osx OSX_KERNEL_SRCS OSX_KERNEL_HEADER)
+    halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" windows WIN_KERNEL_SRCS WIN_KERNEL_HEADER)
+
+    set(${RET_KERNEL_SRCS} "${LINUX_KERNEL_SRCS};${OSX_KERNEL_SRCS};${WIN_KERNEL_SRCS}" PARENT_SCOPE)
+    set(${RET_LINUX_KERNEL_HEADER} ${LINUX_KERNEL_HEADER} PARENT_SCOPE)
+    set(${RET_OSX_KERNEL_HEADER} ${OSX_KERNEL_HEADER} PARENT_SCOPE)
+    set(${RET_WIN_KERNEL_HEADER} ${WIN_KERNEL_HEADER} PARENT_SCOPE)
+endfunction()
 
 
+function(concat_header header_list RET_include_list)
+    set(include_list "")
+    foreach(header IN LISTS header_list)
+        set(include_list "${include_list}\r\n#include \"${header}\"")
+    endforeach()
+    set(${RET_include_list} ${include_list} PARENT_SCOPE)
+endfunction()
+
+function(insert_header func_name linux_header_list osx_header_list windows_header_list)
+    set(linux_include_list "")
+    concat_header("${linux_header_list}" linux_include_list)
+    set(osx_include_list "")
+    concat_header("${osx_header_list}" osx_include_list)
+    set(windows_include_list "")
+    concat_header("${windows_header_list}" windows_include_list)
+    configure_file(include/hkg/export/halide_${func_name}.h.in ${CMAKE_SOURCE_DIR}/include/hkg/export/halide_${func_name}.h)
+endfunction()

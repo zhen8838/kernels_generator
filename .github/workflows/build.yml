@@ -64,9 +64,9 @@ jobs:
     - name: CTest Backend Feature
       shell: bash
       working-directory: ${{github.workspace}}/build/src/tests
-      run: ctest -V -R feature -C $BUILD_TYPE
+      run: ctest -V -R test_feature -C $BUILD_TYPE
 
     - name: CTest Backend conv2d
       shell: bash
       working-directory: ${{github.workspace}}/build/src/tests
-      run: ctest -R conv2d -C $BUILD_TYPE
+      run: ctest -V -R test_gen_conv2d -C $BUILD_TYPE

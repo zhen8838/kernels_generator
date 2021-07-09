@@ -34,15 +34,9 @@ else()
                         BUILD missing)
     endif()
     include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
-    # set global var
-    set(KERNEL_SRCS "")
-    set(RUNTIME_LIBS "")
-    set(RUNTIME_Targets "")
-    set(GENERATED_DIR "generated_kernels")
     include(cmake/hkgHelper.cmake)
-
     find_package(Halide REQUIRED)
-
+    
     include_directories(include)
     add_compile_options(-fno-rtti -Wall)
 
@@ -58,24 +52,48 @@ else()
     endif()
 
     # generate codes and runtime libs
-    # halide_generate_code(gnne_matmul gnne_matmul "")
+    set(KERNEL_SRCS "")
+    set(RUNTIME_LIBS "")
+    set(RUNTIME_Targets "")
+    # halide_generate_code(gnne_matmul gnne_matmul "" "${KERNEL_SRCS}")
 
     # foreach(WH "1;1" "3;3" "5;5" "7;7")
     #     list(GET WH 0 KH)
     #     list(GET WH -1 KW)
-    #     halide_generate_code(gnne_conv2d "gnne_conv2d_${KH}x${KW}" "kernel_height=${KH};kernel_width=${KW}")
+    #     halide_generate_code(gnne_conv2d "gnne_conv2d_${KH}x${KW}" "kernel_height=${KH};kernel_width=${KW}" "${KERNEL_SRCS}")
     # endforeach(WH)
 
-    halide_generate_runtime()
+    halide_generate_runtime(RUNTIME_LIBS RUNTIME_Targets)
 
+    set(conv2d_all_srcs "")
+    set(conv2d_all_linux_header "")
+    set(conv2d_all_osx_header "")
+    set(conv2d_all_windows_header "")
     foreach(WH "1;1" "3;3" "5;5" "7;7")
+        set(conv2d_srcs "")
+        set(conv2d_linux_header "")
+        set(conv2d_osx_header "")
+        set(conv2d_windows_header "")
         list(GET WH 0 KH)
         list(GET WH -1 KW)
-        halide_generate_code(conv2d "conv2d_${KH}x${KW}" "kernel_height=${KH};kernel_width=${KW}")
-    endforeach(WH)
+        halide_generate_code(conv2d "conv2d_${KH}x${KW}" "kernel_height=${KH};kernel_width=${KW}" 
+            conv2d_srcs
+            conv2d_linux_header
+            conv2d_osx_header
+            conv2d_windows_header)
+        list(APPEND conv2d_all_srcs ${conv2d_srcs})
+        list(APPEND conv2d_all_linux_header ${conv2d_linux_header})
+        list(APPEND conv2d_all_osx_header ${conv2d_osx_header})
+        list(APPEND conv2d_all_windows_header ${conv2d_windows_header})
+    endforeach()
+    message("---------- fyck !! ${conv2d_linux_header}")
+    insert_header(conv2d "${conv2d_all_linux_header}" "${conv2d_all_osx_header}" "${conv2d_all_windows_header}")  
+    list(APPEND KERNEL_SRCS "${conv2d_all_srcs}")
+
+    message("shit !!! ${KERNEL_SRCS}")
 
     add_custom_target(hkg_generated_kernels
-        SOURCES ${KERNEL_SRCS} 
+        SOURCES ${KERNEL_SRCS}
         DEPENDS kernels_generator ${RUNTIME_LIBS})
 
     # sub code
