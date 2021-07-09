@@ -1,8 +1,4 @@
-if(MSVC)
-    enable_language(ASM_MASM)
-else()
-    enable_language(ASM)
-endif()
+enable_language(ASM)
 
 
 enable_testing()
@@ -10,6 +6,9 @@ enable_testing()
 set(os_runtime_lib "")
 set(os_name "")
 hkg_get_runtime_lib(os_runtime_lib os_name)
+set(obj_suffix "")
+set(lib_suffix "")
+hkg_get_suffix(obj_suffix lib_suffix)
 
 macro(add_one_test name)
     if(EXISTS ${hkg_INCLUDE_DIR})
@@ -17,7 +16,7 @@ macro(add_one_test name)
     else()
         set(CUR_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
     endif()
-    file(GLOB ASM_SRC ${CUR_INCLUDE_DIR}/hkg/generated_kernels/halide_${name}*${os_name}*.o)
+    file(GLOB ASM_SRC ${CUR_INCLUDE_DIR}/hkg/generated_kernels/halide_${name}*${os_name}*.${obj_suffix})
     add_executable(test_gen_${name} test_gen_${name}.cpp)
     if(TARGET hkg_generated_kernels)
         # NOTE the cmake must dependence the generated_kernels
