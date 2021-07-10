@@ -4,6 +4,7 @@ set(OSX_SRCS "")
 set(WIN_SRCS "")
 
 # -------------------- conv2d --------------------
+message(STATUS "Configure Conv2d Kernels")
 set(conv2d_all_linux_srcs "")
 set(conv2d_all_osx_srcs "")
 set(conv2d_all_windows_srcs "")

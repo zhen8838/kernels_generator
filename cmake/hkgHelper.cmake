@@ -97,7 +97,6 @@ function(halide_generate_code_multi_os group_name func_name variable os_name RET
             COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_${feature} -o ${OUTPUT_DIR} -e c_header,object,schedule,stmt target=${TARGET_BASE_NAME}${full_feature} ${variable}
             DEPENDS kernels_generator
         )
-        message(${OUTPUT_BASE_NAME}_${feature}.${obj_suffix})
         list(APPEND SRCS ${OUTPUT_BASE_NAME}_${feature}.${obj_suffix})
         list(APPEND HEADER ${HEADER_BAST_NAME}_${feature}.h)
     endforeach()
@@ -108,12 +107,6 @@ endfunction()
 function(halide_generate_code group_name func_name variable 
         RET_LINUX_SRCS RET_OSX_SRCS RET_WIN_SRCS 
         RET_LINUX_HEADER RET_OSX_HEADER RET_WIN_HEADER)
-    set(LINUX_SRCS "")
-    set(OSX_SRCS "")
-    set(WIN_SRCS "")
-    set(LINUX_HEADER "")
-    set(OSX_HEADER "")
-    set(WIN_HEADER "")
     halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" linux LINUX_SRCS LINUX_HEADER)
     halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" osx OSX_SRCS OSX_HEADER)
     halide_generate_code_multi_os("${group_name}" "${func_name}" "${variable}" windows WIN_SRCS WIN_HEADER)
@@ -136,15 +129,11 @@ function(concat_header header_list RET_include_list)
 endfunction()
 
 function(insert_header func_name linux_header_list osx_header_list windows_header_list)
-    set(linux_include_list "")
     concat_header("${linux_header_list}" linux_include_list)
-    set(osx_include_list "")
     concat_header("${osx_header_list}" osx_include_list)
-    set(windows_include_list "")
     concat_header("${windows_header_list}" windows_include_list)
     configure_file(include/hkg/export/halide_${func_name}.h.in ${CMAKE_SOURCE_DIR}/include/hkg/export/halide_${func_name}.h)
 endfunction()
-
 
 function(replace_src_path cur_src_path_list RET_INSTALL_SRCS_PATH)
     set(INSTALL_SRCS_PATH "")

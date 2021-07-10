@@ -71,6 +71,7 @@ else()
     #     SOURCES ${KERNEL_SRCS}
     #     DEPENDS kernels_generator ${RUNTIME_LIBS})        
     # add dummy to force exec the generator
+    # message("hkg_generated_kernels :${KERNEL_SRCS} ${RUNTIME_LIBS}")
     add_library(hkg_generated_kernels src/dummy.cpp ${KERNEL_SRCS} ${RUNTIME_LIBS})
     add_dependencies(hkg_generated_kernels kernels_generator)
     add_library(hkg::generated_kernels ALIAS hkg_generated_kernels)
@@ -84,9 +85,9 @@ else()
         # the `src_name` as a **pointer, so get value by `${${src_name}}`
         add_library(hkg_${os_name}_src INTERFACE)
         replace_src_path(${src_name} INSTALL_SRCS)
-        message("ffff ${${src_name}}")
+        # NOTE the target_link_libraries can't add quote on the library name
         target_link_libraries(hkg_${os_name}_src INTERFACE 
-            $<BUILD_INTERFACE:"${${src_name}}">
+            $<BUILD_INTERFACE:${${src_name}}> 
             $<INSTALL_INTERFACE:${INSTALL_SRCS}>)
         add_library(hkg::${os_name}_src ALIAS hkg_${os_name}_src)    
         list(APPEND SRCS_Targets "hkg_${os_name}_src")
