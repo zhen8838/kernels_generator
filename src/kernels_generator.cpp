@@ -8,3 +8,4 @@ HALIDE_REGISTER_GENERATOR(halide_gnne_conv2d, halide_gnne_conv2d)
 
 HALIDE_REGISTER_GENERATOR(halide_conv2d, halide_conv2d)
 
+HALIDE_REGISTER_GENERATOR(halide_conv2d_depthwise, halide_conv2d_depthwise)

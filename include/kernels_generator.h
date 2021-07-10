@@ -118,3 +118,35 @@ public:
         output = Halideimpl::conv2d(input, weights, bias, value_range, pad_h_before, pad_h_end, pad_w_before, pad_w_end, stride_h, stride_w, kernel_width, kernel_height, auto_schedule);
     }
 };
+
+class halide_conv2d_depthwise : public Halide::Generator<halide_conv2d_depthwise>
+{
+public:
+    // Param
+    GeneratorParam<int32_t> kernel_width { "kernel_width", 3, 1, 7 };
+    GeneratorParam<int32_t> kernel_height { "kernel_height", 3, 1, 7 };
+
+    //
+    Input<Buffer<float>> input { "input", 4 }; // [b,ic,h,w]
+    Input<Buffer<float>> weights { "weights", 4 }; // [oc,ic,h,w]
+    Input<Buffer<float>> bias { "bias", 1 }; // [oc]
+    Input<Buffer<float>> value_range { "value_range", 1 }; // [2]
+
+    Input<int32_t> pad_h_before { "pad_h_before" };
+    Input<int32_t> pad_h_end { "pad_h_end" };
+    Input<int32_t> pad_w_before { "pad_w_before" };
+    Input<int32_t> pad_w_end { "pad_w_end" };
+    Input<int32_t> stride_h { "stride_h" };
+    Input<int32_t> stride_w { "stride_w" };
+
+    Output<Buffer<float>> output { "output", 4 };
+
+    void generate()
+    {
+        weights.dim(0).set_bounds(0, kernel_width).set_stride(1);
+        weights.dim(1).set_bounds(0, kernel_height).set_stride(kernel_width);
+        bias.dim(0).set_stride(1);
+
+        output = Halideimpl::conv2d_depthwise(input, weights, bias, value_range, pad_h_before, pad_h_end, pad_w_before, pad_w_end, stride_h, stride_w, kernel_width, kernel_height, auto_schedule);
+    }
+};

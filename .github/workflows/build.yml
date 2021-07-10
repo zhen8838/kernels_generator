@@ -70,3 +70,19 @@ jobs:
       shell: bash
       working-directory: ${{github.workspace}}/build/src/tests
       run: ctest -V -R test_gen_conv2d -C $BUILD_TYPE
+
+    - name: CTest Backend conv2d depthwise
+      shell: bash
+      working-directory: ${{github.workspace}}/build/src/tests
+      run: ctest -V -R test_gen_conv2d_depthwise -C $BUILD_TYPE
+
+    - name: BenchMark Backend conv2d
+      shell: bash
+      working-directory: ${{github.workspace}}/build/bin
+      run: ./bench_conv2d
+
+    - name: BenchMark Backend conv2d
+      shell: bash
+      working-directory: ${{github.workspace}}/build/bin
+      run: ./bench_conv2d_depthwise
+

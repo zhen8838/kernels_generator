@@ -1,0 +1,70 @@
+// clang-format off
+#ifdef __linux__
+@linux_include_list@
+#elif _WIN32
+@windows_include_list@
+#elif __APPLE__
+@osx_include_list@
+#endif
+// clang-format on
+
+#include "target.h"
+#include <functional>
+
+// clang-format off
+#define halide_conv2d_depthwise_hxw_os(kh, kw, os) \
+    if (internal::host_target.avx512 && internal::host_target.avx2 && \
+        internal::host_target.sse41 && internal::host_target.fma && \
+        internal::host_target.f16c && internal::host_target.avx) \
+    { \
+        func = halide_conv2d_depthwise_##kh##x##kw##_##os##_avx512;\
+    } \
+    else if (internal::host_target.avx2 && internal::host_target.sse41 && \
+             internal::host_target.fma && internal::host_target.f16c && \
+             internal::host_target.avx2) \
+    { \
+        func = halide_conv2d_depthwise_##kh##x##kw##_##os##_avx2; \
+    } \
+    else if (internal::host_target.sse41 && internal::host_target.f16c && \
+             internal::host_target.avx) \
+    { \
+        func = halide_conv2d_depthwise_##kh##x##kw##_##os##_sse41; \
+    } \
+    else \
+    { \
+        func = halide_conv2d_depthwise_##kh##x##kw##_##os##_bare; \
+    }
+// clang-format on
+
+#ifdef __linux__
+#define select_halide_conv2d_depthwise_hxw(kh, kw) halide_conv2d_depthwise_hxw_os(kh, kw, linux)
+#elif _WIN32
+#define select_halide_conv2d_depthwise_hxw(kh, kw) halide_conv2d_depthwise_hxw_os(kh, kw, windows)
+#elif __APPLE__
+#define select_halide_conv2d_depthwise_hxw(kh, kw) halide_conv2d_depthwise_hxw_os(kh, kw, osx)
+#endif
+
+    using conv2d_depthwise_func_t
+    = std::function<int(struct halide_buffer_t *_input_buffer, struct halide_buffer_t *_weights_buffer,
+        struct halide_buffer_t *_bias_buffer, struct halide_buffer_t *_value_range_buffer,
+        int32_t _pad_h_before, int32_t _pad_h_end, int32_t _pad_w_before, int32_t _pad_w_end,
+        int32_t _stride_h, int32_t _stride_w, struct halide_buffer_t *_Clamped_buffer)>;
+
+#define get_halide_conv2d_depthwise_func(kh, kw)                \
+    auto get_halide_conv2d_depthwise_##kh##x##kw()              \
+    {                                                           \
+        conv2d_depthwise_func_t func = nullptr;                 \
+        select_halide_conv2d_depthwise_hxw(kh, kw) return func; \
+    }
+
+#define halide_conv2d_depthwise_hxw(kh, kw)                         \
+    get_halide_conv2d_depthwise_func(kh, kw)                        \
+        conv2d_depthwise_func_t halide_conv2d_depthwise_##kh##x##kw \
+        = get_halide_conv2d_depthwise_##kh##x##kw();
+
+// clang-format off
+halide_conv2d_depthwise_hxw(1,1)
+halide_conv2d_depthwise_hxw(3,3)
+halide_conv2d_depthwise_hxw(5,5)
+halide_conv2d_depthwise_hxw(7,7)
+    // clang-format on

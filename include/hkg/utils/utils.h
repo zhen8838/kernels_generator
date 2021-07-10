@@ -331,3 +331,11 @@ struct Scalar_t
         hbuf = other.hbuf;
     }
 };
+
+template <typename T1, typename T2>
+void print_blob(Tensor_t<T1, T2> &t)
+{
+    std::cout << t.name << std::endl;
+    print_blob(t.nraw, t.shape);
+    print_blob(t.hraw, t.shape);
+}

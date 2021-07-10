@@ -6,6 +6,9 @@ PROJECT(kernels_generator)
 option(ENABLE_BENCHMARK "ENABLE_BENCHMARK" ON)
 option(ENABLE_TEST "ENABLE_TEST" ON)
 option(ENABLE_ONLY_BENCHMARK_TEST "use conan package only build and run benchmark & test, when enable this " OFF)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DDEBUG)
+endif()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 

@@ -79,7 +79,7 @@ static Target host_target = get_host_target();
 Target get_host_target()
 {
     bool use_64_bits = (sizeof(size_t) == 8);
-    int bits = use_64_bits ? 64 : 32;
+    // int bits = use_64_bits ? 64 : 32;
 
 #if __riscv__
     Target::Arch arch = Target::RISCV;
@@ -124,8 +124,12 @@ Target get_host_target()
     bool have_rdrand = (info[2] & (1 << 30)) != 0;
     bool have_fma = (info[2] & (1 << 12)) != 0;
 
-    assert(("The x86 backend assumes at least sse2 support. This machine does not appear to have sse2.\n", have_sse2));
-
+    if (not have_sse2)
+    {
+        std::cout << "The x86 backend assumes at least sse2 support. This machine does not appear to have sse2." << std::endl;
+    }
+    assert(have_sse2);
+    
     if (have_sse41)
     {
         target.sse41 = true;

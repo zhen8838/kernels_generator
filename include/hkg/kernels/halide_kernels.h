@@ -130,6 +130,7 @@ Halide::Func gnne_conv2d(BT<T1> &input, BT<T1> &weights,
         if (kernel_height.value() == 1 and kernel_width.value() == 1)
         {
             // 300 倍优化 @ stride=1 and 2
+            // NOTE when k=1 and stride=2 can't use tiling, because the halide will malloc new memory block
             auto p_co = Psumed.parallel(CO);
             auto p_co_unroll = p_co.specialize(input.height() % 32 == 0)
                                    .split(HO, HO, Hi, 32)
@@ -177,7 +178,7 @@ Halide::Func gnne_conv2d(BT<T1> &input, BT<T1> &weights,
                 .unroll(r.x);
         }
     }
-    std::cout << "\nGenerate Gnne Conv2D kernel " << kernel_height.value() << " " << kernel_width.value() << std::endl;
+    // std::cout << "\nGenerate Gnne Conv2D kernel " << kernel_height.value() << " " << kernel_width.value() << std::endl;
     // Psumed.print_loop_nest();
     return Psumed;
 }
@@ -278,7 +279,6 @@ Halide::Func gnne_depthwise_conv2d(BT<T1> &input, BT<T1> &weights,
                 .unroll(r.x);
         }
     }
-    std::cout << "\nGenerate Gnne Conv2D kernel " << kernel_height.value() << " " << kernel_width.value() << std::endl;
     // Psumed.print_loop_nest();
     return Psumed;
 }
@@ -323,9 +323,11 @@ Halide::Func conv2d(
         Var Hi("Hi"), Wi("Wi");
         if (kernel_height.value() == 1 and kernel_width.value() == 1)
         {
+
             // 300 倍优化 @ stride=1 and 2
             auto p_co = Clamped.parallel(CO);
             auto p_co_unroll = p_co.specialize(input.height() % 32 == 0)
+                                   .specialize(stride_h == 1 and stride_w == 1)
                                    .split(HO, HO, Hi, 32)
                                    .unroll(Hi, 4);
 
@@ -341,12 +343,6 @@ Halide::Func conv2d(
                                       .split(WO, WO, Wi, 32)
                                       .vectorize(Wi, 4)
                                       .unroll(Wi);
-
-            Conv.compute_at(Clamped, WO);
-
-            Conv.update()
-                .unroll(r.y)
-                .unroll(r.x);
         }
         else
         {
@@ -359,15 +355,91 @@ Halide::Func conv2d(
             Clamped.parallel(HO)
                 .specialize(out_channels % 4 == 0)
                 .vectorize(CO, 4);
-
-            Conv.compute_at(Clamped, WO);
-            Conv.update()
-                .unroll(r.y)
-                .unroll(r.x);
         }
+
+        Conv.compute_at(Clamped, WO);
+        Conv.update()
+            .unroll(r.y)
+            .unroll(r.x);
     }
 
     return Clamped;
 }
 
+template <template <typename> typename BT, typename T1, template <typename> typename BT2>
+Halide::Func conv2d_depthwise(
+    BT<T1> &input, BT<T1> &weights, BT<T1> &bias, BT<T1> &value_range,
+    BT2<int32_t> &pad_h_before,
+    BT2<int32_t> &pad_h_end, BT2<int32_t> &pad_w_before,
+    BT2<int32_t> &pad_w_end, BT2<int32_t> &stride_h,
+    BT2<int32_t> &stride_w,
+    Halide::GeneratorParam<int32_t> &kernel_height,
+    Halide::GeneratorParam<int32_t> &kernel_width,
+    Halide::GeneratorParam<bool> &auto_schedule)
+{
+
+    Halide::Var WO("WO"), HO("HO"), C("C"), B("B");
+    Halide::Func Padding("Padding"), Paded("Paded"), Conv("Conv"), Clamped("Clamped");
+    Halide::RDom r(0, weights.width(), 0, weights.height()); // w,h
+
+    Padding = Halide::BoundaryConditions::constant_exterior(input, 0,
+        { { 0, input.width() },
+            { 0, input.height() },
+            { Halide::Expr(), Halide::Expr() },
+            { Halide::Expr(), Halide::Expr() } });
+
+    Halide::Expr channels = input.dim(2).extent();
+    Paded(WO, HO, C, B) = Padding(WO - pad_w_before, HO - pad_h_before, C, B);
+    Conv(WO, HO, C, B) += weights(r.x, r.y, 0, C) * Paded(WO * stride_w + r.x, HO * stride_h + r.y, C, B); // use float to sum
+    Conv(WO, HO, C, B) += bias(C);
+    Clamped(WO, HO, C, B) = clamp(Conv(WO, HO, C, B), value_range(0), value_range(1));
+
+    /* Schedule */
+    Halide::Var Hi("Hi"), Hii("Hii"), Wi("Wi"), WH("WH");
+    if (auto_schedule.value())
+    {
+    }
+    else
+    {
+        if (kernel_height.value() == 1 and kernel_width.value() == 1)
+        {
+            // 300 倍优化 @ stride=1 and 2
+            auto p_c = Clamped.parallel(C);
+            auto p_c_unroll = p_c.specialize(input.height() % 32 == 0)
+                                  .specialize(stride_h == 1 and stride_w == 1)
+                                  .split(HO, HO, Hi, 32)
+                                  .unroll(Hi, 4);
+
+            auto p_c_vw = p_c.specialize(input.width() % 32 == 0)
+                              .split(WO, WO, Wi, 32)
+                              .vectorize(Wi, 4)
+                              .unroll(Wi);
+
+            p_c.specialize(channels % 4 == 0)
+                .vectorize(C, 4);
+
+            auto p_c_unroll_vw = p_c_unroll.specialize(input.width() % 32 == 0)
+                                     .split(WO, WO, Wi, 32)
+                                     .vectorize(Wi, 4)
+                                     .unroll(Wi);
+        }
+        else
+        {
+            // method 1. Psum specialize + vector 达到500+
+            Clamped.specialize(channels >= input.height())
+                .parallel(C)
+                .specialize(channels % 4 == 0)
+                .vectorize(C, 4);
+            Clamped.parallel(HO)
+                .specialize(channels % 4 == 0)
+                .vectorize(C, 4);
+        }
+        Conv.compute_at(Clamped, WO);
+        Conv.update()
+            .unroll(r.y)
+            .unroll(r.x);
+    }
+    // Psumed.print_loop_nest();
+    return Clamped;
+}
 }

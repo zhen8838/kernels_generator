@@ -8,10 +8,10 @@
 using NNCASE_TYPE_t = float;
 
 template <typename T1, typename T2>
-auto get_data(size_t batch, size_t in_channels, size_t height, size_t width, size_t out_channels, size_t k_height, size_t k_width, size_t stride_h, size_t stride_w, bool pad_same, init_method method = init_method::rand)
+auto get_data(size_t batch, size_t channels, size_t height, size_t width, size_t k_height, size_t k_width, size_t stride_h, size_t stride_w, bool pad_same, init_method method = init_method::rand)
 {
-    Tensor_t<T1, T2> input({ batch, in_channels, height, width }, "input");
-    Tensor_t<T1, T2> weights({ out_channels, in_channels, k_height, k_width }, "weight");
+    Tensor_t<T1, T2> input({ batch, channels, height, width }, "input");
+    Tensor_t<T1, T2> weights({ channels, 1, k_height, k_width }, "weight");
     size_t out_h, out_w;
     nncase::padding padding_h = nncase::padding::zero(), padding_w = nncase::padding::zero();
     if (pad_same)
@@ -30,21 +30,24 @@ auto get_data(size_t batch, size_t in_channels, size_t height, size_t width, siz
     out_h = nncase::kernels::detail::get_windowed_output_size(height, k_height, stride_h, 1, padding_h);
     out_w = nncase::kernels::detail::get_windowed_output_size(width, k_width, stride_w, 1, padding_w);
 
-    Tensor_t<T1, T2> output({ batch, out_channels, out_h, out_w }, "output");
-    Tensor_t<T1, T2> bias({ out_channels }, "act");
+    Tensor_t<T1, T2> output({ batch, channels, out_h, out_w }, "output");
+    Tensor_t<T1, T2> bias({ channels }, "act");
     Tensor_t<T1, T2> v_range({ 2 }, "value_range");
 
     input.allocate(method);
     weights.allocate(method);
     output.allocate(init_method::zero);
-    bias.allocate(method);
+    if (method == init_method::sequence)
+        bias.allocate(init_method::zero);
+    else
+        bias.allocate(method);
     v_range.allocate();
     v_range.as_value_range(range_t::full);
 
     return std::make_tuple(std::move(input), std::move(weights), std::move(output), std::move(bias), std::move(v_range), padding_h, padding_w);
 }
 
-class Conv2DParamBase
+class Conv2DDepthWiseParamBase
 {
 public:
     Tensor_t<NNCASE_TYPE_t, NNCASE_TYPE_t> input, weights, output, bias, v_range;
@@ -57,24 +60,29 @@ public:
 
     void set_param(std::pair<int32_t, int32_t> &filter_hw, std::vector<size_t> &shape_param, std::pair<int32_t, int32_t> &stride_hw, bool PadSame, bool is_print = true)
     {
-        auto B = shape_param[0], IC = shape_param[1], H = shape_param[2], W = shape_param[3], OC = shape_param[4];
-        groups = 1;
+        auto B = shape_param[0], C = shape_param[1], H = shape_param[2], W = shape_param[3];
+        groups = C;
         filter_h = filter_hw.first;
         filter_w = filter_hw.second;
         stride_h = stride_hw.first;
         stride_w = stride_hw.second;
         dilation_h = 1;
         dilation_w = 1;
-        std::tie(input, weights, output, bias, v_range, padding_h, padding_w) = get_data<NNCASE_TYPE_t, NNCASE_TYPE_t>(B, IC, H, W, OC, filter_h, filter_w, stride_h, stride_w, PadSame);
-        in_shape = nncase::runtime_shape_t({ B, IC, H, W });
+#ifdef DEBUG
+        init_method method = init_method::sequence;
+#else
+        init_method method = init_method::rand;
+#endif
+        std::tie(input, weights, output, bias, v_range, padding_h, padding_w) = get_data<NNCASE_TYPE_t, NNCASE_TYPE_t>(B, C, H, W, filter_h, filter_w, stride_h, stride_w, PadSame, method);
+        in_shape = nncase::runtime_shape_t({ B, C, H, W });
         in_strides = nncase::runtime::get_default_strides(in_shape);
         w_shape = weights.shape;
         w_strides = nncase::runtime::get_default_strides(w_shape);
         bias_strides = nncase::runtime::get_default_strides(bias.shape);
         output_strides = nncase::runtime::get_default_strides(output.shape);
-        out_channels = OC;
+        out_channels = C;
         if (is_print)
-            printf("In : [%ld, %ld, %ld, %ld], OC: %ld, S: [%d x %d]\n", B, IC, H, W, OC, stride_h, stride_w);
+            printf("In : [%ld, %ld, %ld, %ld], S: [%d x %d]\n", B, C, H, W, stride_h, stride_w);
     }
     size_t check_error()
     {
