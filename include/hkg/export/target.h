@@ -124,12 +124,6 @@ Target get_host_target()
     bool have_rdrand = (info[2] & (1 << 30)) != 0;
     bool have_fma = (info[2] & (1 << 12)) != 0;
 
-    if (not have_sse2)
-    {
-        std::cout << "The x86 backend assumes at least sse2 support. This machine does not appear to have sse2." << std::endl;
-    }
-    assert(have_sse2);
-    
     if (have_sse41)
     {
         target.sse41 = true;
