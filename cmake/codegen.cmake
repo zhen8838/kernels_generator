@@ -2,6 +2,10 @@
 set(LINUX_SRCS "")
 set(OSX_SRCS "")
 set(WIN_SRCS "")
+set(LINUX_HEADERS "")
+set(OSX_HEADERS "")
+set(WIN_HEADERS "")
+
 
 # -------------------- conv2d --------------------
 message(STATUS "Configure Conv2d Kernels")
@@ -34,6 +38,9 @@ insert_header(conv2d "${conv2d_all_linux_header}" "${conv2d_all_osx_header}" "${
 list(APPEND LINUX_SRCS ${conv2d_all_linux_srcs})
 list(APPEND OSX_SRCS ${conv2d_all_osx_srcs})
 list(APPEND WIN_SRCS ${conv2d_all_windows_srcs})
+list(APPEND LINUX_HEADERS ${conv2d_all_linux_header})
+list(APPEND OSX_HEADERS ${conv2d_all_osx_header})
+list(APPEND WIN_HEADERS ${conv2d_all_windows_header})
 
 # -------------------- conv2d depthwise--------------------
 
@@ -67,8 +74,18 @@ insert_header(conv2d_depthwise "${conv2d_depthwise_all_linux_header}" "${conv2d_
 list(APPEND LINUX_SRCS ${conv2d_depthwise_all_linux_srcs})
 list(APPEND OSX_SRCS ${conv2d_depthwise_all_osx_srcs})
 list(APPEND WIN_SRCS ${conv2d_depthwise_all_windows_srcs})
-
+list(APPEND LINUX_HEADERS ${conv2d_depthwise_all_linux_header})
+list(APPEND OSX_HEADERS ${conv2d_depthwise_all_osx_header})
+list(APPEND WIN_HEADERS ${conv2d_depthwise_all_windows_header})
 
 # all
 
 list(APPEND KERNEL_SRCS "${LINUX_SRCS};${OSX_SRCS};${WIN_SRCS}")
+list(APPEND KERNEL_HEADERS "${LINUX_HEADERS};${OSX_HEADERS};${WIN_HEADERS}")
+
+foreach(kernel_header IN LISTS KERNEL_HEADERS)
+    # the return KERNEL_HEADERS only has the relation path, because it's only for insert
+    list(APPEND FULL_PATH_KERNEL_HEADERS ${CMAKE_SOURCE_DIR}/include/${kernel_header})
+endforeach()
+
+

@@ -30,7 +30,7 @@ conan upload hkg/0.0.1  --all -r sunnycase
 # local rebuilding and test
 
 ```sh
-rm -rf build include/hkg/generated_kernels/ include/hkg/export/halide_conv2d.h 
+rm -rf build include/hkg/generated_kernels/ 
 cmake . -DCMAKE_BUILD_TYPE=Debug -Bbuild
 cmake --build build -j 80
 cmake --install build --prefix build/package
@@ -39,4 +39,9 @@ cmake --build build_test --config Release
 cd build_test/src/tests/
 ctest --verbose -C
 cd ../../..
+```
+
+```sh
+cmake . -DCMAKE_BUILD_TYPE=Debug -B build -DHalide_DIR=/Users/lisa/Downloads/Halide-12.0.1-arm-64-osx/lib/cmake/Halide -DHalideHelpers_DIR=/Users/lisa/Downloads/Halide-12.0.1-arm-64-osx/lib/cmake/HalideHelpers -DENABLE_BENCHMARK=OFF -DENABLE_TEST=OFF 
+cmake --build build
 ```

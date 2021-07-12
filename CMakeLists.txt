@@ -75,12 +75,14 @@ else()
     #     DEPENDS kernels_generator ${RUNTIME_LIBS})        
     # add dummy to force exec the generator
     # message("hkg_generated_kernels :${KERNEL_SRCS} ${RUNTIME_LIBS}")
-    add_library(hkg_generated_kernels src/dummy.cpp ${KERNEL_SRCS} ${RUNTIME_LIBS})
+    message(STATUS "Building Dummy Target for generate libs,objects")
+    add_library(hkg_generated_kernels src/dummy.cpp ${FULL_PATH_KERNEL_HEADERS} ${RUNTIME_LIBS})
     add_dependencies(hkg_generated_kernels kernels_generator)
     add_library(hkg::generated_kernels ALIAS hkg_generated_kernels)
     set_target_properties(hkg_generated_kernels PROPERTIES EXPORT_NAME generated_kernels)
 
     # make src target for sub project use
+    message(STATUS "Building Separated Target for Sub Project")
     set(SRCS_Targets "")
     set(os_name_list "linux;osx;windows")
     set(src_name_list "LINUX_SRCS;OSX_SRCS;WIN_SRCS")

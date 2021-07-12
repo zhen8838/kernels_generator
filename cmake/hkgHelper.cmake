@@ -92,7 +92,7 @@ function(halide_generate_code_multi_os group_name func_name variable os_name RET
 
     foreach(feature full_feature IN ZIP_LISTS feature_list full_feature_list)
         add_custom_command(
-            OUTPUT ${OUTPUT_BASE_NAME}_${feature}.${obj_suffix}
+            OUTPUT ${OUTPUT_BASE_NAME}_${feature}.${obj_suffix} ${OUTPUT_BASE_NAME}_${feature}.h
             COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
             COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernels_generator -g halide_${group_name} -f ${FUNC_BASE_NAME}_${feature} -o ${OUTPUT_DIR} -e c_header,object,schedule,stmt target=${TARGET_BASE_NAME}${full_feature} ${variable}
             DEPENDS kernels_generator

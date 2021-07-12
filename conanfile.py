@@ -11,7 +11,7 @@ class HkgConan(ConanFile):
   url = "<Package recipe repository url here, for issues about the package>"
   description = "Halide kernel generator"
   topics = ("DNN", "compiler")
-  settings = "arch"
+  settings = None
   options = {"tests": [True, False],
              "benchmark": [True, False]}
 
@@ -29,8 +29,7 @@ class HkgConan(ConanFile):
     self.build_requires("Halide/12.0.0")
 
   def config_options(self):
-    if self.settings.arch != "x86_64":
-      raise ValueError("not support other patfrom!")
+    pass
 
   def configure(self):
     pass
@@ -54,4 +53,4 @@ class HkgConan(ConanFile):
     cmake.install()
 
   def package_info(self):
-    self.cpp_info.build_modules = ['lib/cmake/hkgTargets.cmake','lib/cmake/hkgHelper.cmake']
+    self.cpp_info.build_modules = ['lib/cmake/hkgTargets.cmake', 'lib/cmake/hkgHelper.cmake']
