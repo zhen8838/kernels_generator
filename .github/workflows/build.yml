@@ -97,4 +97,4 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v1
       working-directory: ${{github.workspace}}/build/bin
       with:
-        files: build/bin/*.xml
+        files: ./*.xml
