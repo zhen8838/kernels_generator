@@ -89,13 +89,21 @@ jobs:
       if: runner.os == 'Linux'
       shell: bash
       working-directory: ${{github.workspace}}
-      run: build/bin/bench_conv2d -j benchmark_results/bench_conv2d.xml
+      run: |
+        build/bin/bench_conv2d -g Conv2DBenchMark_1x1 -j benchmark_results/bench_conv2d_1x1.xml
+        build/bin/bench_conv2d -g Conv2DBenchMark_3x3 -j benchmark_results/bench_conv2d_3x3.xml
+        build/bin/bench_conv2d -g Conv2DBenchMark_5x5 -j benchmark_results/bench_conv2d_5x5.xml
+        build/bin/bench_conv2d -g Conv2DBenchMark_7x7 -j benchmark_results/bench_conv2d_7x7.xml
 
     - name: BenchMark Backend conv2d depthwise
       if: runner.os == 'Linux'
       shell: bash
       working-directory: ${{github.workspace}}
-      run: build/bin/bench_conv2d_depthwise -j benchmark_results/bench_conv2d_depthwise.xml
+      run: |
+        build/bin/bench_conv2d_depthwise -g Conv2DDepthwiseBenchMark_1x1 -j benchmark_results/bench_conv2d_depthwise_1x1.xml
+        build/bin/bench_conv2d_depthwise -g Conv2DDepthwiseBenchMark_3x3 -j benchmark_results/bench_conv2d_depthwise_3x3.xml
+        build/bin/bench_conv2d_depthwise -g Conv2DDepthwiseBenchMark_5x5 -j benchmark_results/bench_conv2d_depthwise_5x5.xml
+        build/bin/bench_conv2d_depthwise -g Conv2DDepthwiseBenchMark_7x7 -j benchmark_results/bench_conv2d_depthwise_7x7.xml
       
     - name: Publish Bechmark Results
       if: always() && runner.os == 'Linux'
