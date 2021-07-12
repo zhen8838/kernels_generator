@@ -27,6 +27,7 @@ class HkgConan(ConanFile):
 
   def build_requirements(self):
     self.build_requires("Halide/12.0.0")
+    self.options['Halide'].shared = True
 
   def config_options(self):
     pass
