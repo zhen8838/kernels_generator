@@ -120,10 +120,11 @@ else()
 
     # install all headers
     install(DIRECTORY include/hkg
-            DESTINATION include)
+            DESTINATION include
+            PATTERN "*.h.in" EXCLUDE)
     # NOTE install halide header from conan test
     install(FILES ${Halide_INCLUDES}/HalideBuffer.h ${Halide_INCLUDES}/HalideRuntime.h
-            DESTINATION include)
+            DESTINATION include/hkg/export)
 
     install(FILES ${RUNTIME_LIBS}
             DESTINATION lib)

@@ -81,11 +81,13 @@ jobs:
       run: ctest -V -R test_gen_conv2d_depthwise -C $BUILD_TYPE
 
     - name: BenchMark Backend conv2d
+      if: runner.os == 'Linux'
       shell: bash
       working-directory: ${{github.workspace}}/build/bin
       run: ./bench_conv2d -j ./bench_conv2d.xml
 
     - name: BenchMark Backend conv2d depthwise
+      if: runner.os == 'Linux'
       shell: bash
       working-directory: ${{github.workspace}}/build/bin
       run: ./bench_conv2d_depthwise -j ./bench_conv2d_depthwise.xml
@@ -93,11 +95,6 @@ jobs:
     - name: Publish Bechmark Results
       if: always() && runner.os == 'Linux'
       uses: EnricoMi/publish-unit-test-result-action@v1
-      with:
-        files: build/bin/*.xml
-
-    - name: Publish Bechmark Results
-      if: always() && runner.os != 'Linux'
-      uses: EnricoMi/publish-unit-test-result-action/composite@v1
+      working-directory: ${{github.workspace}}/build/bin
       with:
         files: build/bin/*.xml
