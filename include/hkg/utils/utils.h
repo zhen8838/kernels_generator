@@ -2,7 +2,7 @@
 
 #include "nncase.h"
 #include "prng.h"
-#include <HalideBuffer.h>
+#include "hkg/export/HalideBuffer.h"
 #include <chrono>
 #include <fstream>
 #include <iostream>

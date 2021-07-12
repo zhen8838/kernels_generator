@@ -80,6 +80,17 @@ else()
     add_dependencies(hkg_generated_kernels kernels_generator)
     add_library(hkg::generated_kernels ALIAS hkg_generated_kernels)
     set_target_properties(hkg_generated_kernels PROPERTIES EXPORT_NAME generated_kernels)
+    # import halide header before building
+    add_custom_command(
+        TARGET hkg_generated_kernels PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${Halide_INCLUDES}/HalideBuffer.h
+                ${CMAKE_SOURCE_DIR}/include/hkg/export/HalideBuffer.h)
+    add_custom_command(
+        TARGET hkg_generated_kernels PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${Halide_INCLUDES}/HalideRuntime.h
+                ${CMAKE_SOURCE_DIR}/include/hkg/export/HalideRuntime.h)
 
     # make src target for sub project use
     message(STATUS "Building Separated Target for Sub Project")
@@ -123,8 +134,8 @@ else()
             DESTINATION include
             PATTERN "*.h.in" EXCLUDE)
     # NOTE install halide header from conan test
-    install(FILES ${Halide_INCLUDES}/HalideBuffer.h ${Halide_INCLUDES}/HalideRuntime.h
-            DESTINATION include/hkg/export)
+    # install(FILES ${Halide_INCLUDES}/HalideBuffer.h ${Halide_INCLUDES}/HalideRuntime.h
+    #         DESTINATION include/hkg/export)
 
     install(FILES ${RUNTIME_LIBS}
             DESTINATION lib)
