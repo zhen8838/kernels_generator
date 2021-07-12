@@ -80,21 +80,25 @@ jobs:
       working-directory: ${{github.workspace}}/build/src/tests
       run: ctest -V -R test_gen_conv2d_depthwise -C $BUILD_TYPE
 
+    - name: Create Benchmark Environment
+      working-directory: ${{github.workspace}}
+      shell: bash
+      run: mkdir benchmark_results
+
     - name: BenchMark Backend conv2d
       if: runner.os == 'Linux'
       shell: bash
-      working-directory: ${{github.workspace}}/build/bin
-      run: ./bench_conv2d -j ./bench_conv2d.xml
+      working-directory: ${{github.workspace}}
+      run: build/bin/bench_conv2d -j benchmark_results/bench_conv2d.xml
 
     - name: BenchMark Backend conv2d depthwise
       if: runner.os == 'Linux'
       shell: bash
-      working-directory: ${{github.workspace}}/build/bin
-      run: ./bench_conv2d_depthwise -j ./bench_conv2d_depthwise.xml
+      working-directory: ${{github.workspace}}
+      run: build/bin/bench_conv2d_depthwise -j benchmark_results/bench_conv2d_depthwise.xml
       
     - name: Publish Bechmark Results
       if: always() && runner.os == 'Linux'
       uses: EnricoMi/publish-unit-test-result-action@v1
-      working-directory: ${{github.workspace}}/build/bin
       with:
-        files: ./*.xml
+        files: benchmark_results/*.xml
