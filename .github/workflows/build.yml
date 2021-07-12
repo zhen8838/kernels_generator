@@ -1,6 +1,10 @@
 name: build
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 env:
   BUILD_TYPE: Release
@@ -79,10 +83,21 @@ jobs:
     - name: BenchMark Backend conv2d
       shell: bash
       working-directory: ${{github.workspace}}/build/bin
-      run: ./bench_conv2d
+      run: ./bench_conv2d -j ./bench_conv2d.xml
 
-    - name: BenchMark Backend conv2d
+    - name: BenchMark Backend conv2d depthwise
       shell: bash
       working-directory: ${{github.workspace}}/build/bin
-      run: ./bench_conv2d_depthwise
+      run: ./bench_conv2d_depthwise -j ./bench_conv2d_depthwise.xml
+      
+    - name: Publish Bechmark Results
+      if: always() && runner.os == 'Linux'
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      with:
+        files: build/bin/*.xml
 
+    - name: Publish Bechmark Results
+      if: always() && runner.os != 'Linux'
+      uses: EnricoMi/publish-unit-test-result-action/composite@v1
+      with:
+        files: build/bin/*.xml
