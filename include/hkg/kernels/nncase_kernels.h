@@ -92,9 +92,10 @@ inline void conv2d(float *input, float *weights, float *bias, float *output,
     }
 }
 
-inline void gnne_conv2d(bfloat16 *input, bfloat16 *output, bfloat16 *weights, float *psum, bfloat16 *act, runtime_shape_t &in_shape,
+template <typename T>
+inline void gnne_conv2d(T *input, T *output, T *weights, float *psum, T *act, runtime_shape_t &in_shape,
     int32_t groups, int32_t out_channels, int32_t filter_h, int32_t filter_w, int32_t stride_h, int32_t stride_w, int32_t dilation_h, int32_t dilation_w,
-    padding &padding_h, padding &padding_w, value_range<bfloat16> fused_clamp, bool psum_is_uninitialized)
+    padding &padding_h, padding &padding_w, value_range<T> fused_clamp, bool psum_is_uninitialized)
 {
     const auto out_h = nncase::kernels::detail::get_windowed_output_size(in_shape[2], filter_h, stride_h, dilation_h, padding_h);
     const auto out_w = nncase::kernels::detail::get_windowed_output_size(in_shape[3], filter_w, stride_w, dilation_w, padding_w);
@@ -103,14 +104,14 @@ inline void gnne_conv2d(bfloat16 *input, bfloat16 *output, bfloat16 *weights, fl
 
     for (size_t batch = 0; batch < in_shape[0]; batch++)
     {
-        const bfloat16 *in_batch_p = input + batch * in_shape[1] * in_shape[2] * in_shape[3];
+        const T *in_batch_p = input + batch * in_shape[1] * in_shape[2] * in_shape[3];
         for (int32_t og = 0; og < groups; og++)
         {
-            const bfloat16 *in_group_p = in_batch_p + og * g_ic * in_shape[2] * in_shape[3];
-            const bfloat16 *w_group_p = weights + og * g_oc * g_ic * filter_h * filter_w;
+            const T *in_group_p = in_batch_p + og * g_ic * in_shape[2] * in_shape[3];
+            const T *w_group_p = weights + og * g_oc * g_ic * filter_h * filter_w;
             for (int32_t oc = 0; oc < g_oc; oc++)
             {
-                const bfloat16 *w_oc_p = w_group_p + oc * g_ic * filter_h * filter_w;
+                const T *w_oc_p = w_group_p + oc * g_ic * filter_h * filter_w;
                 for (size_t oy = 0; oy < out_h; oy++)
                 {
                     for (size_t ox = 0; ox < out_w; ox++)
@@ -125,26 +126,36 @@ inline void gnne_conv2d(bfloat16 *input, bfloat16 *output, bfloat16 *weights, fl
 
                         for (int32_t ic = 0; ic < (int32_t)g_ic; ic++)
                         {
-                            const bfloat16 *in_c_p = in_group_p + ic * in_shape[2] * in_shape[3];
-                            const bfloat16 *w_ic_p = w_oc_p + ic * filter_h * filter_w;
+                            const T *in_c_p = in_group_p + ic * in_shape[2] * in_shape[3];
+                            const T *w_ic_p = w_oc_p + ic * filter_h * filter_w;
                             for (int32_t ky = filter_y_start; ky < filter_y_end; ky++)
                             {
                                 for (int32_t kx = filter_x_start; kx < filter_x_end; kx++)
                                 {
                                     const int32_t in_y = in_y_origin + dilation_h * ky;
                                     const int32_t in_x = in_x_origin + dilation_w * kx;
-                                    const bfloat16 in_v = in_c_p[in_y * in_shape[3] + in_x];
-                                    const bfloat16 w = w_ic_p[ky * filter_w + kx];
+                                    const T in_v = in_c_p[in_y * in_shape[3] + in_x];
+                                    const T w = w_ic_p[ky * filter_w + kx];
                                     value = value + (float)in_v * w;
                                 }
                             }
                         }
 
                         int32_t base = og * g_oc + oc;
-                        auto result = apply_gnne_activation(value, act[base * 5], act[base * 5 + 1], act[base * 5 + 2], act[base * 5 + 3], act[base * 5 + 4]);
+                        T result = apply_gnne_activation(value, act[base * 5], act[base * 5 + 1], act[base * 5 + 2], act[base * 5 + 3], act[base * 5 + 4]);
                         *output = nncase::kernels::detail::apply_activation(result, fused_clamp);
                         if (!psum_is_uninitialized)
-                            *output += bfloat16::round_to_bfloat16(*psum++);
+                        {
+                            if constexpr (std::is_same<T, bfloat16>::value)
+                            {
+                                *output += bfloat16::round_to_bfloat16(*psum++);
+                            }
+                            else
+                            {
+                                *output += *psum++;
+                            }
+                        }
+
                         output++;
                     }
                 }

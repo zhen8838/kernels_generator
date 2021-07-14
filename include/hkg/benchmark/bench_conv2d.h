@@ -53,7 +53,7 @@ public:
     int32_t groups, out_channels, filter_h, filter_w, stride_h, stride_w, dilation_h, dilation_w;
     nncase::padding padding_h, padding_w;
 
-    size_t total_count = 0, repeat_times = 2;
+    size_t repeat_times = 2;
 
     void set_param(std::pair<int32_t, int32_t> &filter_hw, std::vector<size_t> &shape_param, std::pair<int32_t, int32_t> &stride_hw, bool PadSame, bool is_print = true)
     {
@@ -75,15 +75,6 @@ public:
         out_channels = OC;
         if (is_print)
             printf("In : [%ld, %ld, %ld, %ld], OC: %ld, S: [%d x %d]\n", B, IC, H, W, OC, stride_h, stride_w);
-    }
-    size_t check_error()
-    {
-        size_t err_count = 0;
-        err_count += compare_blob(output.nraw, output.hraw, output.shape, 0.01f);
-        total_count += nncase::runtime::compute_size(output.shape);
-
-        std::cout << "err :" << err_count << ", total :" << total_count << std::endl;
-        return err_count;
     }
 
     void run_reference()

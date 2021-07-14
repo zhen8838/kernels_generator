@@ -4,6 +4,9 @@ build_test
 include/hkg/generated_kernels
 include/hkg/export/halide_conv2d.h
 include/hkg/export/halide_conv2d_depthwise.h
+include/hkg/export/halide_gnne_conv2d.h
+include/hkg/export/halide_gnne_conv2d_depthwise.h
 include/hkg/export/HalideBuffer.h
 include/hkg/export/HalideRuntime.h
 cmd.sh
+tmp

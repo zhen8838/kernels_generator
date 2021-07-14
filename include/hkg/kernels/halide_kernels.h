@@ -112,13 +112,14 @@ Halide::Func gnne_conv2d(BT<T1> &input, BT<T1> &weights,
         Conv(WO, HO, CO, B) * Halide::cast<float>(act(1, CO)) + Halide::cast<float>(act(2, CO)),
         Conv(WO, HO, CO, B) * Halide::cast<float>(act(3, CO)) + Halide::cast<float>(act(4, CO))); // float
 
-    Clamped(WO, HO, CO, B) = clamp(
-        Halide::cast<typename T1::ElemType>(Acted(WO, HO, CO, B)),
-        value_range(0), value_range(1));
+    static_assert(std::is_same<typename T1::ElemType, Halide::bfloat16_t>::value);
 
+    Clamped(WO, HO, CO, B) = clamp(
+        Halide::Internal::float32_to_bfloat16(Acted(WO, HO, CO, B)),
+        value_range(0), value_range(1));
     Psumed(WO, HO, CO, B) = select(no_psum,
         Clamped(WO, HO, CO, B),
-        Clamped(WO, HO, CO, B) + Halide::cast<typename T1::ElemType>(psum(WO, HO, CO, B)));
+        Clamped(WO, HO, CO, B) + Halide::Internal::float32_to_bfloat16(psum(WO, HO, CO, B)));
     /* Schedule */
     Halide::Var Hi("Hi"), Hii("Hii"), Wi("Wi"), WH("WH");
     Halide::Var COo("COo"), COi("COi");
@@ -133,6 +134,7 @@ Halide::Func gnne_conv2d(BT<T1> &input, BT<T1> &weights,
             // NOTE when k=1 and stride=2 can't use tiling, because the halide will malloc new memory block
             auto p_co = Psumed.parallel(CO);
             auto p_co_unroll = p_co.specialize(input.height() % 32 == 0)
+                                   .specialize(stride_h == 1 and stride_w == 1)
                                    .split(HO, HO, Hi, 32)
                                    .unroll(Hi, 4);
 
@@ -184,7 +186,7 @@ Halide::Func gnne_conv2d(BT<T1> &input, BT<T1> &weights,
 }
 
 template <template <typename> typename BT, typename T1, typename T2, template <typename> typename BT2>
-Halide::Func gnne_depthwise_conv2d(BT<T1> &input, BT<T1> &weights,
+Halide::Func gnne_conv2d_depthwise(BT<T1> &input, BT<T1> &weights,
     BT<T2> &psum, BT<T1> &act, BT<T1> &value_range,
     BT2<bool> &no_psum, BT2<int32_t> &pad_h_before,
     BT2<int32_t> &pad_h_end, BT2<int32_t> &pad_w_before,
@@ -214,13 +216,15 @@ Halide::Func gnne_depthwise_conv2d(BT<T1> &input, BT<T1> &weights,
         Conv(WO, HO, C, B) * Halide::cast<float>(act(1, C)) + Halide::cast<float>(act(2, C)),
         Conv(WO, HO, C, B) * Halide::cast<float>(act(3, C)) + Halide::cast<float>(act(4, C))); // float
 
+    static_assert(std::is_same<typename T1::ElemType, Halide::bfloat16_t>::value);
+
     Clamped(WO, HO, C, B) = clamp(
-        Halide::cast<typename T1::ElemType>(Acted(WO, HO, C, B)),
+        Halide::Internal::float32_to_bfloat16(Acted(WO, HO, C, B)),
         value_range(0), value_range(1));
 
     Psumed(WO, HO, C, B) = select(no_psum,
         Clamped(WO, HO, C, B),
-        Clamped(WO, HO, C, B) + Halide::cast<typename T1::ElemType>(psum(WO, HO, C, B)));
+        Clamped(WO, HO, C, B) + Halide::Internal::float32_to_bfloat16(psum(WO, HO, C, B)));
     /* Schedule */
     Halide::Var Hi("Hi"), Hii("Hii"), Wi("Wi"), WH("WH");
     Halide::Var Co("Co"), Ci("Ci");
@@ -234,6 +238,7 @@ Halide::Func gnne_depthwise_conv2d(BT<T1> &input, BT<T1> &weights,
             // 300 倍优化 @ stride=1 and 2
             auto p_c = Psumed.parallel(C);
             auto p_c_unroll = p_c.specialize(input.height() % 32 == 0)
+                                  .specialize(stride_h == 1 and stride_w == 1)
                                   .split(HO, HO, Hi, 32)
                                   .unroll(Hi, 4);
 

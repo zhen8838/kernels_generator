@@ -70,15 +70,25 @@ jobs:
       working-directory: ${{github.workspace}}/build/src/tests
       run: ctest -V -R test_feature -C $BUILD_TYPE
 
-    - name: CTest Backend conv2d
+    - name: CTest Backend Conv2d
       shell: bash
       working-directory: ${{github.workspace}}/build/src/tests
       run: ctest -V -R test_gen_conv2d -C $BUILD_TYPE
 
-    - name: CTest Backend conv2d depthwise
+    - name: CTest Backend Conv2d Depthwise
       shell: bash
       working-directory: ${{github.workspace}}/build/src/tests
       run: ctest -V -R test_gen_conv2d_depthwise -C $BUILD_TYPE
+
+    - name: CTest Backend Gnne Conv2d
+      shell: bash
+      working-directory: ${{github.workspace}}/build/src/tests
+      run: ctest -V -R test_gen_gnne_conv2d -C $BUILD_TYPE
+
+    - name: CTest Backend Gnne Conv2d Depthwise
+      shell: bash
+      working-directory: ${{github.workspace}}/build/src/tests
+      run: ctest -V -R test_gen_gnne_conv2d_depthwise -C $BUILD_TYPE
 
     - name: Create Benchmark Environment
       working-directory: ${{github.workspace}}

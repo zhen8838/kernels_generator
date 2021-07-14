@@ -41,7 +41,7 @@ class Conv2DDepthWiseTestSuite : public testing::TestWithParam<
                 padding_h.before, padding_h.after,                                                 \
                 padding_w.before, padding_w.after,                                                 \
                 stride_h, stride_w, output.hbuf);                                                  \
-            err_count += check_error();                                                            \
+            err_count += check_error(output);                                                            \
         }                                                                                          \
         ASSERT_EQ(err_count, 0);                                                                   \
     }
