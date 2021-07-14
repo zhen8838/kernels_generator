@@ -46,7 +46,7 @@ static auto get_data(size_t batch, size_t in_channels, size_t height, size_t wid
 
     return std::make_tuple(std::move(input), std::move(weights),
         std::move(output), std::move(psum), std::move(act),
-        padding_h, padding_w, std::move(v_range), no_psum);
+        padding_h, padding_w, std::move(v_range), std::move(no_psum));
 }
 
 class GNNEConv2DParamBase

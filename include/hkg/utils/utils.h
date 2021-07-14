@@ -324,7 +324,7 @@ struct Scalar_t
         return *this;
     }
 
-    Scalar_t(Scalar_t &other)
+    Scalar_t(Scalar_t &&other)
     {
         raw = other.raw;
         nraw = other.nraw;
