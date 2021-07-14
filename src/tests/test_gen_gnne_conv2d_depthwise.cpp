@@ -10,8 +10,7 @@ auto Shape_Params = testing::Values(
     std::vector<size_t> { 1, 24, 56, 56 },
     std::vector<size_t> { 1, 144, 28, 28 },
     std::vector<size_t> { 1, 32, 28, 28 },
-    std::vector<size_t> { 1, 192, 28, 28 }
-    );
+    std::vector<size_t> { 1, 192, 28, 28 });
 
 auto Stride_Params = testing::Values(
     std::pair<int32_t, int32_t> { 1, 1 },
@@ -22,16 +21,16 @@ auto Pad_Params = testing::Bool();
 auto NoPsum_Params = testing::Bool();
 
 class GNNEConv2DDepthWiseTestSuite : public testing::TestWithParam<
-                                std::tuple<std::vector<size_t>, // shape
-                                    std::pair<int32_t, int32_t>, // stride hw
-                                    bool, // same padding
-                                    bool>>, // has no psum
-                            public GNNEConv2DDepthWiseParamBase
+                                         std::tuple<std::vector<size_t>, // shape
+                                             std::pair<int32_t, int32_t>, // stride hw
+                                             bool, // same padding
+                                             bool>>, // has no psum
+                                     public GNNEConv2DDepthWiseParamBase
 {
 };
 
-#define TEST_P_GNNE_CONV2D_DEPTHWISE(kh, kw)                                                    \
-    TEST_P(GNNEConv2DDepthWiseTestSuite, kernel_##kh##x##kw)                                   \
+#define TEST_P_GNNE_CONV2D_DEPTHWISE(kh, kw)                                          \
+    TEST_P(GNNEConv2DDepthWiseTestSuite, kernel_##kh##x##kw)                          \
     {                                                                                 \
         size_t err_count = 0;                                                         \
         auto [shape_param, stride_param, pad_param, no_psum_param] = GetParam();      \
@@ -46,7 +45,7 @@ class GNNEConv2DDepthWiseTestSuite : public testing::TestWithParam<
                 padding_h.before, padding_h.after,                                    \
                 padding_w.before, padding_w.after,                                    \
                 stride_h, stride_w, output.hbuf);                                     \
-            err_count += check_error_with_float(output, 0.07f);                       \
+            err_count += check_error_with_float(output, 0.1f);                        \
         }                                                                             \
         ASSERT_EQ(err_count, 0);                                                      \
     }

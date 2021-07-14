@@ -172,7 +172,8 @@ size_t compare_blob(ref_t *&ref, T1 *&a, T2 *&b, const nncase::runtime_shape_t &
         {
             char str[200];
             // NOTE when the diff(a,b) > tolerance , log all
-            if (abs((float)a[i] - (float)b[i]) > tolerance)
+            float diff_a = abs(ref[i] - (float)a[i]), diff_b = abs(ref[i] - (float)b[i]);
+            if ((abs((float)a[i] - (float)b[i]) > tolerance) && (diff_a < diff_b))
             {
                 count++;
                 sprintf(str, "error in:  %10ld\t%10.5f\t%10.5f\t%10.5f\n", i, ref[i], (float)a[i], (float)b[i]);
