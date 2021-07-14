@@ -84,15 +84,6 @@ public:
         if (is_print)
             printf("In : [%ld, %ld, %ld, %ld], S: [%d x %d]\n", B, C, H, W, stride_h, stride_w);
     }
-    size_t check_error()
-    {
-        size_t err_count = 0;
-        err_count += compare_blob(output.nraw, output.hraw, output.shape, 0.01f);
-        total_count += nncase::runtime::compute_size(output.shape);
-
-        std::cout << "err :" << err_count << ", total :" << total_count << std::endl;
-        return err_count;
-    }
 
     void run_reference()
     {

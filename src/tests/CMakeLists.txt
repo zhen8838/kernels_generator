@@ -20,3 +20,5 @@ add_test(NAME test_feature COMMAND test_feature)
 
 add_one_test(conv2d)
 add_one_test(conv2d_depthwise)
+add_one_test(gnne_conv2d)
+add_one_test(gnne_conv2d_depthwise)

@@ -118,7 +118,7 @@ Target get_host_target()
     int info[4];
     cpuid(info, 1, 0);
     bool have_sse41 = (info[2] & (1 << 19)) != 0;
-    bool have_sse2 = (info[3] & (1 << 26)) != 0;
+    // bool have_sse2 = (info[3] & (1 << 26)) != 0;
     bool have_avx = (info[2] & (1 << 28)) != 0;
     bool have_f16c = (info[2] & (1 << 29)) != 0;
     bool have_rdrand = (info[2] & (1 << 30)) != 0;

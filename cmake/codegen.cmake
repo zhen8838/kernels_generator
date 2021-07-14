@@ -78,7 +78,78 @@ list(APPEND LINUX_HEADERS ${conv2d_depthwise_all_linux_header})
 list(APPEND OSX_HEADERS ${conv2d_depthwise_all_osx_header})
 list(APPEND WIN_HEADERS ${conv2d_depthwise_all_windows_header})
 
-# all
+# -------------------- gnne conv2d --------------------
+message(STATUS "Configure Gnne Conv2d Kernels")
+set(gnne_conv2d_all_linux_srcs "")
+set(gnne_conv2d_all_osx_srcs "")
+set(gnne_conv2d_all_windows_srcs "")
+set(gnne_conv2d_all_linux_header "")
+set(gnne_conv2d_all_osx_header "")
+set(gnne_conv2d_all_windows_header "")
+foreach(WH "1;1" "3;3" "5;5" "7;7")
+    list(GET WH 0 KH)
+    list(GET WH -1 KW)
+    halide_generate_code(gnne_conv2d "gnne_conv2d_${KH}x${KW}" "kernel_height=${KH};kernel_width=${KW}" 
+        gnne_conv2d_linux_srcs
+        gnne_conv2d_osx_srcs
+        gnne_conv2d_windows_srcs
+        gnne_conv2d_linux_header
+        gnne_conv2d_osx_header
+        gnne_conv2d_windows_header)
+    list(APPEND gnne_conv2d_all_linux_srcs ${gnne_conv2d_linux_srcs})
+    list(APPEND gnne_conv2d_all_osx_srcs ${gnne_conv2d_osx_srcs})
+    list(APPEND gnne_conv2d_all_windows_srcs ${gnne_conv2d_windows_srcs})
+    list(APPEND gnne_conv2d_all_linux_header ${gnne_conv2d_linux_header})
+    list(APPEND gnne_conv2d_all_osx_header ${gnne_conv2d_osx_header})
+    list(APPEND gnne_conv2d_all_windows_header ${gnne_conv2d_windows_header})
+endforeach()
+
+insert_header(gnne_conv2d "${gnne_conv2d_all_linux_header}" "${gnne_conv2d_all_osx_header}" "${gnne_conv2d_all_windows_header}")  
+
+list(APPEND LINUX_SRCS ${gnne_conv2d_all_linux_srcs})
+list(APPEND OSX_SRCS ${gnne_conv2d_all_osx_srcs})
+list(APPEND WIN_SRCS ${gnne_conv2d_all_windows_srcs})
+list(APPEND LINUX_HEADERS ${gnne_conv2d_all_linux_header})
+list(APPEND OSX_HEADERS ${gnne_conv2d_all_osx_header})
+list(APPEND WIN_HEADERS ${gnne_conv2d_all_windows_header})
+
+# -------------------- gnne conv2d depth wise --------------------
+
+message(STATUS "Configure Gnne Conv2d Depthwise Kernels")
+set(gnne_conv2d_depthwise_all_linux_srcs "")
+set(gnne_conv2d_depthwise_all_osx_srcs "")
+set(gnne_conv2d_depthwise_all_windows_srcs "")
+set(gnne_conv2d_depthwise_all_linux_header "")
+set(gnne_conv2d_depthwise_all_osx_header "")
+set(gnne_conv2d_depthwise_all_windows_header "")
+foreach(WH "1;1" "3;3" "5;5" "7;7")
+    list(GET WH 0 KH)
+    list(GET WH -1 KW)
+    halide_generate_code(gnne_conv2d_depthwise "gnne_conv2d_depthwise_${KH}x${KW}" "kernel_height=${KH};kernel_width=${KW}" 
+        gnne_conv2d_depthwise_linux_srcs
+        gnne_conv2d_depthwise_osx_srcs
+        gnne_conv2d_depthwise_windows_srcs
+        gnne_conv2d_depthwise_linux_header
+        gnne_conv2d_depthwise_osx_header
+        gnne_conv2d_depthwise_windows_header)
+    list(APPEND gnne_conv2d_depthwise_all_linux_srcs ${gnne_conv2d_depthwise_linux_srcs})
+    list(APPEND gnne_conv2d_depthwise_all_osx_srcs ${gnne_conv2d_depthwise_osx_srcs})
+    list(APPEND gnne_conv2d_depthwise_all_windows_srcs ${gnne_conv2d_depthwise_windows_srcs})
+    list(APPEND gnne_conv2d_depthwise_all_linux_header ${gnne_conv2d_depthwise_linux_header})
+    list(APPEND gnne_conv2d_depthwise_all_osx_header ${gnne_conv2d_depthwise_osx_header})
+    list(APPEND gnne_conv2d_depthwise_all_windows_header ${gnne_conv2d_depthwise_windows_header})
+endforeach()
+
+insert_header(gnne_conv2d_depthwise "${gnne_conv2d_depthwise_all_linux_header}" "${gnne_conv2d_depthwise_all_osx_header}" "${gnne_conv2d_depthwise_all_windows_header}")  
+
+list(APPEND LINUX_SRCS ${gnne_conv2d_depthwise_all_linux_srcs})
+list(APPEND OSX_SRCS ${gnne_conv2d_depthwise_all_osx_srcs})
+list(APPEND WIN_SRCS ${gnne_conv2d_depthwise_all_windows_srcs})
+list(APPEND LINUX_HEADERS ${gnne_conv2d_depthwise_all_linux_header})
+list(APPEND OSX_HEADERS ${gnne_conv2d_depthwise_all_osx_header})
+list(APPEND WIN_HEADERS ${gnne_conv2d_depthwise_all_windows_header})
+
+# ------------------- merge all information --------------------
 
 list(APPEND KERNEL_SRCS "${LINUX_SRCS};${OSX_SRCS};${WIN_SRCS}")
 list(APPEND KERNEL_HEADERS "${LINUX_HEADERS};${OSX_HEADERS};${WIN_HEADERS}")

@@ -1,8 +1,8 @@
 #pragma once
 
+#include "hkg/export/HalideBuffer.h"
 #include "nncase.h"
 #include "prng.h"
-#include "hkg/export/HalideBuffer.h"
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -94,7 +94,7 @@ void init_blob(T *&m, init_method method, nncase::runtime_shape_t shape, T base)
 
     auto func = [&m, &method, &base](size_t i)
     {
-        T v;
+        T v = static_cast<T>(0);
         switch (method)
         {
         case init_method::rand:
@@ -171,7 +171,8 @@ size_t compare_blob(ref_t *&ref, T1 *&a, T2 *&b, const nncase::runtime_shape_t &
         [&ref, &a, &b, &count, &print, &os, tolerance](size_t i)
         {
             char str[200];
-            if (abs(ref[i] - (float)a[i]) > tolerance or abs(ref[i] - (float)b[i]) > tolerance)
+            // NOTE when the diff(a,b) > tolerance , log all
+            if (abs((float)a[i] - (float)b[i]) > tolerance)
             {
                 count++;
                 sprintf(str, "error in:  %10ld\t%10.5f\t%10.5f\t%10.5f\n", i, ref[i], (float)a[i], (float)b[i]);
@@ -338,4 +339,45 @@ void print_blob(Tensor_t<T1, T2> &t)
     std::cout << t.name << std::endl;
     print_blob(t.nraw, t.shape);
     print_blob(t.hraw, t.shape);
+}
+
+template <typename T1, typename T2>
+size_t check_error(Tensor_t<T1, T2> &output, float tol = 0.01f)
+{
+    size_t err_count = 0, total_count = 0;
+    err_count += compare_blob(output.nraw, output.hraw, output.shape, tol);
+    total_count += nncase::runtime::compute_size(output.shape);
+
+    std::cout << "err :" << err_count << ", total :" << total_count << std::endl;
+    return err_count;
+}
+
+template <typename T1, typename T2>
+size_t check_error_with_float(Tensor_t<T1, T2> &output, float tol = 0.01f)
+{
+    size_t err_count = 0, total_count = 0;
+    err_count += compare_blob(output.raw, output.nraw, output.hraw, output.shape, tol);
+    total_count += nncase::runtime::compute_size(output.shape);
+
+    std::cout << "err :" << err_count << ", total :" << total_count << std::endl;
+    return err_count;
+}
+
+std::tuple<size_t, size_t, nncase::padding, nncase::padding> calc_padded_shape(size_t height, size_t width, size_t k_height, size_t k_width, bool pad_same)
+{
+    nncase::padding padding_h = nncase::padding::zero(), padding_w = nncase::padding::zero();
+    size_t out_h = 0, out_w = 0;
+    if (pad_same)
+    {
+        out_h = int(ceilf(float(height) / float(k_height)));
+        out_w = int(ceilf(float(width) / float(k_width)));
+        size_t pad_height = std::max(k_height - (height % k_height ? (height % k_height) : k_height), size_t(0));
+        size_t pad_width = std::max(k_width - (width % k_width ? (width % k_width) : k_width), size_t(0));
+        padding_h.before = pad_height / 2;
+        padding_h.after = pad_height - padding_h.before;
+
+        padding_w.before = pad_width / 2;
+        padding_w.after = pad_width - padding_w.before;
+    }
+    return std::make_tuple(out_h, out_w, padding_h, padding_w);
 }

@@ -5,7 +5,7 @@ import shutil
 
 class HkgConan(ConanFile):
   name = "hkg"
-  version = "0.0.1"
+  version = "0.0.2"
   license = "MIT"
   author = "zhengqihang 18000632@smail.cczu.edu.cn"
   url = "<Package recipe repository url here, for issues about the package>"

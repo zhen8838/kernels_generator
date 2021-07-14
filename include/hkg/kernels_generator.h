@@ -83,7 +83,47 @@ public:
         act.dim(0).set_bounds(0, 5).set_stride(1).dim(1).set_stride(5);
         value_range.dim(0).set_bounds(0, 2).set_stride(1);
 
-        output = Halideimpl::gnne_conv2d(input, weights, psum, act, value_range, no_psum, pad_h_before, pad_h_end, pad_w_before, pad_w_end, stride_h, stride_w, kernel_width, kernel_height, auto_schedule);
+        output = Halideimpl::gnne_conv2d(input, weights, psum, act, value_range, no_psum,
+            pad_h_before, pad_h_end, pad_w_before, pad_w_end,
+            stride_h, stride_w, kernel_width, kernel_height,
+            auto_schedule);
+    }
+};
+class halide_gnne_conv2d_depthwise : public Halide::Generator<halide_gnne_conv2d_depthwise>
+{
+public:
+    // Param
+    GeneratorParam<int32_t> kernel_width { "kernel_width", 3, 1, 7 };
+    GeneratorParam<int32_t> kernel_height { "kernel_height", 3, 1, 7 };
+
+    //
+    Input<Buffer<bfloat16_t>> input { "input", 4 }; // [b,ic,h,w]
+    Input<Buffer<bfloat16_t>> weights { "weights", 4 }; // [oc,ic,h,w]
+    Input<Buffer<float>> psum { "psum", 4 }; // same as output
+    Input<Buffer<bfloat16_t>> act { "act", 2 }; // [out channels, 5]
+    Input<Buffer<bfloat16_t>> value_range { "value_range", 1 }; // [2]
+    Input<bool> no_psum { "no_psum" };
+
+    Input<int32_t> pad_h_before { "pad_h_before" };
+    Input<int32_t> pad_h_end { "pad_h_end" };
+    Input<int32_t> pad_w_before { "pad_w_before" };
+    Input<int32_t> pad_w_end { "pad_w_end" };
+    Input<int32_t> stride_h { "stride_h" };
+    Input<int32_t> stride_w { "stride_w" };
+
+    Output<Buffer<bfloat16_t>> output { "output", 4 };
+
+    void generate()
+    {
+        weights.dim(0).set_bounds(0, kernel_width);
+        weights.dim(1).set_bounds(0, kernel_height);
+        act.dim(0).set_bounds(0, 5).set_stride(1).dim(1).set_stride(5);
+        value_range.dim(0).set_bounds(0, 2).set_stride(1);
+
+        output = Halideimpl::gnne_conv2d_depthwise(input, weights, psum, act, value_range, no_psum,
+            pad_h_before, pad_h_end, pad_w_before, pad_w_end,
+            stride_h, stride_w, kernel_width, kernel_height,
+            auto_schedule);
     }
 };
 
@@ -115,7 +155,9 @@ public:
         weights.dim(1).set_bounds(0, kernel_height).set_stride(kernel_width);
         bias.dim(0).set_stride(1);
 
-        output = Halideimpl::conv2d(input, weights, bias, value_range, pad_h_before, pad_h_end, pad_w_before, pad_w_end, stride_h, stride_w, kernel_width, kernel_height, auto_schedule);
+        output = Halideimpl::conv2d(input, weights, bias, value_range,
+            pad_h_before, pad_h_end, pad_w_before, pad_w_end,
+            stride_h, stride_w, kernel_width, kernel_height, auto_schedule);
     }
 };
 
