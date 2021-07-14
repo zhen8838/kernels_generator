@@ -3,13 +3,15 @@
 #include <gtest/gtest.h>
 
 auto Shape_Params = testing::Values(
+    std::vector<size_t> { 1, 3, 6, 6 },
     std::vector<size_t> { 1, 32, 112, 112 },
     std::vector<size_t> { 1, 16, 112, 112 },
     std::vector<size_t> { 1, 96, 56, 56 },
     std::vector<size_t> { 1, 24, 56, 56 },
     std::vector<size_t> { 1, 144, 28, 28 },
     std::vector<size_t> { 1, 32, 28, 28 },
-    std::vector<size_t> { 1, 192, 28, 28 });
+    std::vector<size_t> { 1, 192, 28, 28 }
+    );
 
 auto Stride_Params = testing::Values(
     std::pair<int32_t, int32_t> { 1, 1 },

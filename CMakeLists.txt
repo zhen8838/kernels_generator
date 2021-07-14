@@ -58,23 +58,11 @@ else()
     set(KERNEL_SRCS "")
     set(RUNTIME_LIBS "")
     set(RUNTIME_Targets "")
-    # halide_generate_code(gnne_matmul gnne_matmul "" "${KERNEL_SRCS}")
-
-    # foreach(WH "1;1" "3;3" "5;5" "7;7")
-    #     list(GET WH 0 KH)
-    #     list(GET WH -1 KW)
-    #     halide_generate_code(gnne_conv2d "gnne_conv2d_${KH}x${KW}" "kernel_height=${KH};kernel_width=${KW}" "${KERNEL_SRCS}")
-    # endforeach(WH)
 
     halide_generate_runtime(RUNTIME_LIBS RUNTIME_Targets)
 
     include(cmake/codegen.cmake)
 
-    # add_custom_target(hkg_generated_kernels
-    #     SOURCES ${KERNEL_SRCS}
-    #     DEPENDS kernels_generator ${RUNTIME_LIBS})        
-    # add dummy to force exec the generator
-    # message("hkg_generated_kernels :${KERNEL_SRCS} ${RUNTIME_LIBS}")
     message(STATUS "Building Dummy Target for generate libs,objects")
     add_library(hkg_generated_kernels src/dummy.cpp ${FULL_PATH_KERNEL_HEADERS} ${RUNTIME_LIBS})
     add_dependencies(hkg_generated_kernels kernels_generator)

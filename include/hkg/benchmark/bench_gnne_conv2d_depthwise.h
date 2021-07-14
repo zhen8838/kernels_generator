@@ -42,7 +42,7 @@ public:
     Tensor_t<float, float> psum;
     Scalar_t<bool, bool> no_psum;
     nncase::runtime_shape_t in_shape;
-    int32_t groups, out_channels, filter_h, filter_w, stride_h, stride_w, dilation_h, dilation_w;
+    int32_t groups, channels, filter_h, filter_w, stride_h, stride_w, dilation_h, dilation_w;
     nncase::padding padding_h, padding_w;
     size_t repeat_times = 2;
 
@@ -58,6 +58,7 @@ public:
         dilation_w = 1;
         std::tie(input, weights, output, psum, act, padding_h, padding_w, v_range, no_psum) = get_data<NNCASE_TYPE_t, NNCASE_TYPE_t>(B, C, H, W, filter_h, filter_w, stride_h, stride_w, pad_same, no_psum_);
         in_shape = nncase::runtime_shape_t({ B, C, H, W });
+        channels = C;
         if (is_print)
             printf("In : [%ld, %ld, %ld, %ld], OC: %ld, S: [%d x %d]\n", B, C, H, W, C, stride_h, stride_w);
     }
@@ -66,7 +67,7 @@ public:
     {
         Nncaseimpl::gnne_conv2d(input.nraw, output.nraw,
             weights.nraw, psum.nraw, act.nraw,
-            in_shape, groups, out_channels,
+            in_shape, groups, channels,
             filter_h, filter_w, stride_h, stride_w,
             dilation_h, dilation_w, padding_h, padding_w,
             nncase::value_range<NNCASE_TYPE_t> { v_range.nraw[0], v_range.nraw[1] }, no_psum.nraw);
@@ -76,7 +77,7 @@ public:
     {
         Nncaseimpl::gnne_conv2d(input.raw, output.raw,
             weights.raw, psum.raw, act.raw,
-            in_shape, groups, out_channels,
+            in_shape, groups, channels,
             filter_h, filter_w, stride_h, stride_w,
             dilation_h, dilation_w, padding_h, padding_w,
             nncase::value_range<float> { v_range.raw[0], v_range.raw[1] }, no_psum.raw);
