@@ -15,9 +15,17 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 if(ENABLE_ONLY_BENCHMARK_TEST)
     include(cmake/conan.cmake)
     conan_add_remote(NAME sunnycase URL https://conan.sunnycase.moe INDEX 0)
-    conan_cmake_run(CONANFILE conanfile-test-only.txt
-                    BASIC_SETUP
-                    BUILD missing)
+    if(hkg_DIR)
+      conan_cmake_run(CONANFILE conanfile-test.txt
+          BASIC_SETUP
+          BUILD missing)
+      message(STATUS "Use Local Installed hkg Package! ${hkg_DIR}")
+      include(${hkg_DIR}/hkgHelper.cmake)
+    else()
+      conan_cmake_run(CONANFILE conanfile-test-only.txt
+            BASIC_SETUP
+            BUILD missing)
+    endif(hkg_DIR)
     include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
     find_package(hkg REQUIRED)
     find_package(GTest REQUIRED)

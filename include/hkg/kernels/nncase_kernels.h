@@ -142,20 +142,10 @@ inline void gnne_conv2d(T *input, T *output, T *weights, float *psum, T *act, ru
                         }
 
                         int32_t base = og * g_oc + oc;
+                        if (!psum_is_uninitialized)
+                            value += *psum++;
                         T result = apply_gnne_activation(value, act[base * 5], act[base * 5 + 1], act[base * 5 + 2], act[base * 5 + 3], act[base * 5 + 4]);
                         *output = nncase::kernels::detail::apply_activation(result, fused_clamp);
-                        if (!psum_is_uninitialized)
-                        {
-                            if constexpr (std::is_same<T, bfloat16>::value)
-                            {
-                                *output += bfloat16::round_to_bfloat16(*psum++);
-                            }
-                            else
-                            {
-                                *output += *psum++;
-                            }
-                        }
-
                         output++;
                     }
                 }

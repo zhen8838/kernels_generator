@@ -15,7 +15,8 @@ macro(add_one_test name)
 endmacro()
 
 add_executable(test_feature test_feature.cpp)
-target_link_libraries(test_feature GTest::gtest_main)
+add_dependencies(test_feature hkg::generated_kernels)
+target_link_libraries(test_feature GTest::gtest_main hkg::${os_name}_src ${hkg_runtime_lib})
 add_test(NAME test_feature COMMAND test_feature)
 
 add_one_test(conv2d)

@@ -6,7 +6,7 @@ cmake_paths
 [requires]
 gtest/1.10.0
 celero/2.6.0
-hkg/0.0.2
+hkg/0.0.3
 
 [options]
 
